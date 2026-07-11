@@ -549,8 +549,26 @@
                     .where('timestamp', '<', tomorrow)
                     .get();
                 const receiptSeq = todaySnap.size + 1;
+
+                // Use server timestamp for Firestore
+                const now = firebase.firestore.FieldValue.serverTimestamp();
                 
-                transaction.receiptSeq = receiptSeq;
+                const transaction = {
+                    items: cart.map(item => ({
+                        name: item.name,
+                        price: item.price,
+                        qty: item.qty,
+                        subtotal: item.price * item.qty
+                    })),
+                    total,
+                    cash,
+                    change,
+                    method: selectedPaymentMethod,
+                    timestamp: now,
+                    receiptSeq,
+                    createdAt: Date.now(),
+                    createdBy: currentUser.email
+                };
 
                 await db.collection('transactions').add(transaction);
 
@@ -577,9 +595,17 @@
                               transaction.method === 'qris' ? 'QRIS' : 'Transfer';
             
             // Generate receipt number: pos-JJMMTT-0000001
-            const ts = new Date(transaction.timestamp?.toDate());
+            // Use createdAt (plain ms timestamp) since serverTimestamp() is a sentinel object
+            let ts;
+            if (transaction.createdAt && typeof transaction.createdAt === 'number') {
+                ts = new Date(transaction.createdAt);
+            } else if (transaction.timestamp && transaction.timestamp?.toDate) {
+                ts = new Date(transaction.timestamp.toDate());
+            } else {
+                ts = new Date();
+            }
             if (isNaN(ts.getTime())) {
-                ts.setTime(Date.now());
+                ts = new Date();
             }
             const dd = String(ts.getDate()).padStart(2, '0');
             const MM = String(ts.getMonth() + 1).padStart(2, '0');
