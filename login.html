@@ -58,7 +58,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        auth.setPersistence(firebase.auth.AuthPersistence.LOCAL).catch(() => {});
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
 
         const loginForm = document.getElementById('login-form');
         const errorMessage = document.getElementById('error-message');
