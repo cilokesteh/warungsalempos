@@ -134,7 +134,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-sm text-zinc-400">Harga</label>
+                        <label class="text-sm text-zinc-400">Harga (Rp)</label>
                         <input type="number" id="product-price" class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 mt-1">
                     </div>
                     <div>
@@ -163,24 +163,52 @@
     <div id="payment-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
         <div class="bg-zinc-900 rounded-3xl w-full max-w-md border border-zinc-800 p-6 mx-4">
             <h3 class="font-semibold text-xl mb-4">Pembayaran</h3>
+            
             <div class="text-center mb-6">
                 <div class="text-zinc-400">Total Belanja</div>
                 <div id="payment-total" class="text-4xl font-bold text-emerald-400 mt-1">Rp 0</div>
             </div>
-            
-            <div>
+
+            <div class="mb-4">
+                <label class="text-sm text-zinc-400">Metode Pembayaran</label>
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                    <button onclick="selectPaymentMethod('cash')" id="method-cash" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-emerald-500 text-sm">Cash</button>
+                    <button onclick="selectPaymentMethod('qris')" id="method-qris" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-emerald-500 text-sm">QRIS</button>
+                    <button onclick="selectPaymentMethod('transfer')" id="method-transfer" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-emerald-500 text-sm">Transfer</button>
+                </div>
+            </div>
+
+            <div id="cash-section">
                 <label class="text-sm text-zinc-400">Uang Tunai</label>
                 <input type="number" id="cash-amount" class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 mt-1 text-2xl text-center" oninput="calculateChange()">
-            </div>
-            
-            <div class="flex justify-between mt-4 text-lg">
-                <span class="text-zinc-400">Kembalian</span>
-                <span id="change-amount" class="font-bold text-emerald-400">Rp 0</span>
+                
+                <div class="flex justify-between mt-4 text-lg">
+                    <span class="text-zinc-400">Kembalian</span>
+                    <span id="change-amount" class="font-bold text-emerald-400">Rp 0</span>
+                </div>
             </div>
 
             <div class="flex gap-3 mt-6">
                 <button onclick="hidePaymentModal()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">Batal</button>
-                <button onclick="processPayment()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-semibold">Bayar & Cetak</button>
+                <button onclick="confirmPayment()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-semibold">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div class="bg-zinc-900 rounded-3xl w-full max-w-sm border border-zinc-800 p-6 mx-4 text-center">
+            <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-check text-emerald-400 text-3xl"></i>
+            </div>
+            <h3 class="font-semibold text-xl mb-2">Konfirmasi Pembayaran</h3>
+            <p class="text-zinc-400 mb-1">Total: <span id="confirm-total" class="text-white font-bold">Rp 0</span></p>
+            <p class="text-zinc-400 mb-1">Metode: <span id="confirm-method" class="text-white font-bold">Cash</span></p>
+            <p id="confirm-change-text" class="text-zinc-400 mb-6">Kembalian: <span id="confirm-change" class="text-emerald-400 font-bold">Rp 0</span></p>
+            
+            <div class="flex gap-3">
+                <button onclick="hideConfirmModal()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">Batal</button>
+                <button onclick="finishPayment()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-semibold">Selesai</button>
             </div>
         </div>
     </div>
@@ -219,6 +247,8 @@
         let cart = [];
         let currentFilter = 'all';
         let editingProductId = null;
+        let selectedPaymentMethod = 'cash';
+        let todayStats = { transactions: 0, revenue: 0 };
 
         // Auth check
         auth.onAuthStateChanged(user => {
@@ -228,6 +258,7 @@
                 currentUser = user;
                 document.getElementById('admin-name').textContent = user.email.split('@')[0];
                 loadProducts();
+                loadTodayStats();
             }
         });
 
@@ -264,19 +295,24 @@
 
             list.forEach(product => {
                 const div = document.createElement('div');
-                div.className = `flex justify-between items-center p-3 bg-zinc-950 rounded-2xl border border-zinc-800 hover:border-emerald-500 cursor-pointer`;
+                div.className = 'flex justify-between items-center p-3 bg-zinc-950 rounded-2xl border border-zinc-800 hover:border-emerald-500';
                 div.innerHTML = `
-                    <div>
+                    <div class="flex-1 cursor-pointer" onclick="addToCart('${product.id}')">
                         <div class="font-medium">${product.name}</div>
                         <div class="text-xs text-zinc-400">${product.category} • Stok: ${product.stock}</div>
-                    </div>
-                    <div class="text-right">
                         <div class="font-semibold text-emerald-400">Rp ${product.price.toLocaleString('id-ID')}</div>
-                        <button onclick="event.stopImmediatePropagation(); addToCart('${product.id}');" 
-                                class="text-xs px-3 py-0.5 bg-emerald-600 rounded-full mt-1">+ Keranjang</button>
+                    </div>
+                    <div class="flex gap-2 ml-2">
+                        <button onclick="event.stopPropagation(); showProductModal(products.find(p=>p.id==='${product.id}'))" 
+                                class="w-8 h-8 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs flex items-center justify-center">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="event.stopPropagation(); addToCart('${product.id}')" 
+                                class="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-xs flex items-center justify-center">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
                     </div>
                 `;
-                div.onclick = () => addToCart(product.id);
                 container.appendChild(div);
             });
         }
@@ -387,7 +423,7 @@
             const stock = parseInt(document.getElementById('product-stock').value);
             const category = document.getElementById('product-category').value;
 
-            if (!name || !price || !stock) return alert('Lengkapi data');
+            if (!name || isNaN(price) || isNaN(stock)) return alert('Lengkapi data');
 
             const data = { name, price, stock, category };
 
@@ -399,6 +435,22 @@
             hideProductModal();
         }
 
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('[id^="method-"]').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-900/30');
+            });
+            const active = document.getElementById(`method-${method}`);
+            active.classList.add('border-emerald-500', 'bg-emerald-900/30');
+
+            const cashSection = document.getElementById('cash-section');
+            if (method === 'cash') {
+                cashSection.classList.remove('hidden');
+            } else {
+                cashSection.classList.add('hidden');
+            }
+        }
+
         function showPaymentModal() {
             if (cart.length === 0) return;
             const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -406,6 +458,7 @@
             document.getElementById('cash-amount').value = '';
             document.getElementById('change-amount').textContent = 'Rp 0';
             document.getElementById('payment-modal').classList.remove('hidden');
+            selectPaymentMethod('cash');
             document.getElementById('cash-amount').focus();
         }
 
@@ -420,14 +473,53 @@
             document.getElementById('change-amount').textContent = `Rp ${change.toLocaleString('id-ID')}`;
         }
 
-        async function processPayment() {
+        function confirmPayment() {
+            if (cart.length === 0) return;
+
             const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-            const cash = parseInt(document.getElementById('cash-amount').value) || 0;
-            if (cash < total) return alert('Uang kurang');
+            
+            if (selectedPaymentMethod === 'cash') {
+                const cash = parseInt(document.getElementById('cash-amount').value) || 0;
+                if (cash < total) {
+                    alert('Uang tunai kurang');
+                    return;
+                }
+            }
 
-            const change = cash - total;
+            // Show confirm modal
+            document.getElementById('confirm-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+            document.getElementById('confirm-method').textContent = 
+                selectedPaymentMethod === 'cash' ? 'Cash' : 
+                selectedPaymentMethod === 'qris' ? 'QRIS' : 'Transfer';
+            
+            const changeText = document.getElementById('confirm-change-text');
+            if (selectedPaymentMethod === 'cash') {
+                const cash = parseInt(document.getElementById('cash-amount').value) || 0;
+                const change = cash - total;
+                changeText.classList.remove('hidden');
+                document.getElementById('confirm-change').textContent = `Rp ${change.toLocaleString('id-ID')}`;
+            } else {
+                changeText.classList.add('hidden');
+            }
 
-            // Create transaction
+            hidePaymentModal();
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function hideConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        async function finishPayment() {
+            const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            let cash = 0;
+            let change = 0;
+
+            if (selectedPaymentMethod === 'cash') {
+                cash = parseInt(document.getElementById('cash-amount').value) || 0;
+                change = cash - total;
+            }
+
             const transaction = {
                 items: cart.map(item => ({
                     name: item.name,
@@ -438,6 +530,7 @@
                 total,
                 cash,
                 change,
+                method: selectedPaymentMethod,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 createdBy: currentUser.email
             };
@@ -452,8 +545,7 @@
                     });
                 }
 
-                // Show receipt
-                hidePaymentModal();
+                hideConfirmModal();
                 showReceipt(transaction);
                 cart = [];
                 renderCart();
@@ -465,6 +557,8 @@
         function showReceipt(transaction) {
             const modal = document.getElementById('receipt-modal');
             const content = document.getElementById('receipt-content');
+            const methodLabel = transaction.method === 'cash' ? 'Cash' : 
+                              transaction.method === 'qris' ? 'QRIS' : 'Transfer';
             
             let html = `
                 <div class="text-center border-b pb-2 mb-3">
@@ -490,6 +584,14 @@
                         <span>Rp ${transaction.total.toLocaleString('id-ID')}</span>
                     </div>
                     <div class="flex justify-between text-xs mt-1">
+                        <span>Metode</span>
+                        <span>${methodLabel}</span>
+                    </div>
+            `;
+
+            if (transaction.method === 'cash') {
+                html += `
+                    <div class="flex justify-between text-xs">
                         <span>Tunai</span>
                         <span>Rp ${transaction.cash.toLocaleString('id-ID')}</span>
                     </div>
@@ -497,6 +599,10 @@
                         <span>Kembali</span>
                         <span>Rp ${transaction.change.toLocaleString('id-ID')}</span>
                     </div>
+                `;
+            }
+
+            html += `
                 </div>
                 <div class="text-center text-xs mt-4 pt-2 border-t">Terima Kasih</div>
             `;
@@ -521,17 +627,41 @@
             html2pdf().set(opt).from(element).save();
         }
 
+        async function loadTodayStats() {
+            if (!currentUser) return;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            try {
+                const snapshot = await db.collection('transactions')
+                    .where('timestamp', '>=', today)
+                    .where('timestamp', '<', tomorrow)
+                    .get();
+
+                todayStats = { transactions: 0, revenue: 0 };
+                snapshot.forEach(doc => {
+                    todayStats.transactions++;
+                    todayStats.revenue += doc.data().total || 0;
+                });
+
+                document.getElementById('today-transactions').textContent = todayStats.transactions;
+                document.getElementById('today-revenue').textContent = `Rp ${todayStats.revenue.toLocaleString('id-ID')}`;
+            } catch (err) {
+                console.error('Error loading today stats:', err);
+            }
+        }
+
         function updateStats() {
             document.getElementById('total-products').textContent = products.length;
             
-            // Low stock
             const lowStock = products.filter(p => p.stock < 5);
             document.getElementById('low-stock').textContent = lowStock.length;
         }
 
-        // Initial category buttons
         document.addEventListener('DOMContentLoaded', () => {
-            // Auto focus search
             document.getElementById('search-product').focus();
         });
     </script>
