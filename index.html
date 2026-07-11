@@ -216,7 +216,7 @@
 
     <!-- Receipt Modal -->
     <div id="receipt-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div class="bg-white text-black rounded-2xl w-full max-w-[300px] p-6 mx-4 font-mono text-sm" id="receipt-content">
+        <div id="receipt-content" class="bg-white text-black mx-4 font-mono text-[13px] leading-tight" style="width:80mm;max-width:320px;padding:8px;">
             <!-- Receipt content injected by JS -->
         </div>
         <div class="absolute bottom-8 flex gap-3">
@@ -472,7 +472,16 @@
             const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
             const cash = parseInt(document.getElementById('cash-amount').value) || 0;
             const change = Math.max(0, cash - total);
-            document.getElementById('change-amount').textContent = `Rp ${change.toLocaleString('id-ID')}`;
+            
+            const changeEl = document.getElementById('change-amount');
+            if (cash >= total) {
+                changeEl.className = 'font-bold text-emerald-400';
+                changeEl.textContent = `Rp ${change.toLocaleString('id-ID')}`;
+            } else {
+                const kurang = total - cash;
+                changeEl.className = 'font-bold text-red-400';
+                changeEl.textContent = `Kurang Rp ${kurang.toLocaleString('id-ID')}`;
+            }
         }
 
         function confirmPayment() {
@@ -483,7 +492,8 @@
             if (selectedPaymentMethod === 'cash') {
                 const cash = parseInt(document.getElementById('cash-amount').value) || 0;
                 if (cash < total) {
-                    alert('Uang tunai kurang');
+                    const kurang = total - cash;
+                    alert(`⚠️ Uang kurang!\n\nTotal: Rp ${total.toLocaleString('id-ID')}\nBayar: Rp ${cash.toLocaleString('id-ID')}\nKurang: Rp ${kurang.toLocaleString('id-ID')}\n\nSilakan tambah nominal.`);
                     return;
                 }
             }
@@ -594,8 +604,7 @@
             const methodLabel = transaction.method === 'cash' ? 'Cash' : 
                               transaction.method === 'qris' ? 'QRIS' : 'Transfer';
             
-            // Generate receipt number: pos-JJMMTT-0000001
-            // Use createdAt (plain ms timestamp) since serverTimestamp() is a sentinel object
+            // Generate receipt number: POS-DDMMYY-0000001
             let ts;
             if (transaction.createdAt && typeof transaction.createdAt === 'number') {
                 ts = new Date(transaction.createdAt);
@@ -604,79 +613,81 @@
             } else {
                 ts = new Date();
             }
-            if (isNaN(ts.getTime())) {
-                ts = new Date();
-            }
+            if (isNaN(ts.getTime())) ts = new Date();
+            
             const dd = String(ts.getDate()).padStart(2, '0');
             const MM = String(ts.getMonth() + 1).padStart(2, '0');
             const yy = String(ts.getFullYear()).slice(-2);
             const seq = String(transaction.receiptSeq || 1).padStart(6, '0');
             const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
             
-            const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const dateStr = ts.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = `${dd}/${MM}/${yy}`;
             
-            let html = `
-                <div class="text-center border-b pb-2 mb-3">
-                    <div class="font-bold text-lg">WARUNG SALEM</div>
-                    <div class="text-xs italic mt-0.5">"Beuteng wareg awak jagjag"</div>
-                    <div class="text-xs mt-2">
-                        <span>${dateStr}</span> • <span>${timeStr}</span>
-                    </div>
-                    <div class="text-xs mt-1 font-mono bg-zinc-100 inline-block px-2 py-0.5 rounded">${receiptNo}</div>
-                </div>
-            `;
-
+            // Build receipt HTML with thermal-precise formatting
+            let html = '';
+            
+            // Header
+            html += `<div style="text-align:center;margin-bottom:6px;">`;
+            html += `<div style="font-size:16px;font-weight:bold;letter-spacing:1px;">WARUNG SALEM</div>`;
+            html += `<div style="font-size:10px;font-style:italic;margin:2px 0;">"Beuteng wareg awak jagjag"</div>`;
+            html += `<div style="font-size:10px;">${dateStr} ${timeStr}</div>`;
+            html += `<div style="font-size:10px;margin-top:2px;border:1px solid #ccc;display:inline-block;padding:0 6px;">${receiptNo}</div>`;
+            html += `</div>`;
+            
+            // Separator
+            html += `<div style="border-top:1px dashed #000;margin:6px 0;"></div>`;
+            
+            // Items
+            html += `<div style="margin-bottom:2px;">`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:11px;">`;
+            html += `<span style="font-weight:bold;">Item</span>`;
+            html += `<span style="font-weight:bold;">Jml x Hrg</span>`;
+            html += `</div>`;
+            
             transaction.items.forEach(item => {
-                html += `
-                    <div class="flex justify-between text-xs mb-0.5">
-                        <span>${item.name} ×${item.qty}</span>
-                        <span>Rp ${item.subtotal.toLocaleString('id-ID')}</span>
-                    </div>
-                `;
+                html += `<div style="display:flex;justify-content:space-between;font-size:11px;">`;
+                html += `<span>${item.name} x${item.qty}</span>`;
+                html += `<span>${item.subtotal.toLocaleString('id-ID')}</span>`;
+                html += `</div>`;
             });
-
-            html += `
-                <div class="border-t mt-3 pt-2">
-                    <div class="flex justify-between font-bold">
-                        <span>TOTAL</span>
-                        <span>Rp ${transaction.total.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div class="flex justify-between text-xs mt-1">
-                        <span>Metode</span>
-                        <span>${methodLabel}</span>
-                    </div>
-            `;
-
+            
+            // Totals
+            html += `<div style="border-top:1px dashed #000;margin:6px 0;"></div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:bold;">`;
+            html += `<span>TOTAL</span>`;
+            html += `<span>${transaction.total.toLocaleString('id-ID')}</span>`;
+            html += `</div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:2px;">`;
+            html += `<span>Metode</span>`;
+            html += `<span>${methodLabel}</span>`;
+            html += `</div>`;
+            
             if (transaction.method === 'cash') {
-                html += `
-                    <div class="flex justify-between text-xs">
-                        <span>Tunai</span>
-                        <span>Rp ${transaction.cash.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span>Kembali</span>
-                        <span>Rp ${transaction.change.toLocaleString('id-ID')}</span>
-                    </div>
-                `;
+                html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:2px;">`;
+                html += `<span>Tunai</span>`;
+                html += `<span>${transaction.cash.toLocaleString('id-ID')}</span>`;
+                html += `</div>`;
+                html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:1px;">`;
+                html += `<span>Kembali</span>`;
+                html += `<span>${transaction.change.toLocaleString('id-ID')}</span>`;
+                html += `</div>`;
             }
-
-            html += `
-                </div>
-                <div class="text-center text-xs mt-4 pt-2 border-t">Terima Kasih</div>
-                <div class="text-center text-[10px] text-zinc-500 mt-2 space-y-0.5 border-t pt-2">
-                    <div>Jl. Tegal Mulya, Gerbang Belakang Kampus UMP</div>
-                    <div>Ledug, Kembaran, Purwokerto</div>
-                    <div class="mt-1">Jam Buka: Setiap Hari 10.00 - 21.00 WIB</div>
-                    <div>WA: 0823-2555-5586</div>
-                    <div>IG: @warung_salem</div>
-                </div>
-            `;
-
+            
+            // Footer
+            html += `<div style="border-top:1px dashed #000;margin:8px 0;"></div>`;
+            html += `<div style="text-align:center;font-size:11px;">Terima Kasih</div>`;
+            html += `<div style="text-align:center;font-size:9px;color:#666;margin-top:6px;line-height:1.5;">`;
+            html += `Jl. Tegal Mulya, Gerbang Belakang Kampus UMP<br>`;
+            html += `Ledug, Kembaran, Purwokerto<br>`;
+            html += `Jam Buka: Setiap Hari 10.00 - 21.00 WIB<br>`;
+            html += `WA: 0823-2555-5586<br>`;
+            html += `IG: @warung_salem`;
+            html += `</div>`;
+            
             content.innerHTML = html;
             modal.classList.remove('hidden');
             
-            // Store receipt data for pdf download
             window._lastReceiptNo = receiptNo;
         }
 
