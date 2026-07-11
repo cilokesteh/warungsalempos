@@ -627,8 +627,11 @@
             // Build receipt HTML with thermal-precise formatting
             let html = '';
             
+            // Wrap everything in a centered container
+            html += `<div style="width:100%;text-align:center;max-width:80mm;margin:0 auto;">`;
+            
             // Header
-            html += `<div style="text-align:center;margin-bottom:6px;">`;
+            html += `<div style="margin-bottom:6px;">`;
             html += `<div style="font-size:16px;font-weight:bold;letter-spacing:1px;">WARUNG SALEM</div>`;
             html += `<div style="font-size:10px;font-style:italic;margin:2px 0;">"Beuteng wareg awak jagjag"</div>`;
             html += `<div style="font-size:10px;">${dateStr} ${timeStr}</div>`;
@@ -638,9 +641,8 @@
             // Separator
             html += `<div style="border-top:1px dashed #000;margin:6px 0;"></div>`;
             
-            // Items
-            html += `<div style="margin-bottom:2px;">`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:11px;">`;
+            // Item header
+            html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">`;
             html += `<span style="font-weight:bold;">Item</span>`;
             html += `<span style="font-weight:bold;">Jml x Hrg</span>`;
             html += `</div>`;
@@ -676,14 +678,17 @@
             
             // Footer
             html += `<div style="border-top:1px dashed #000;margin:8px 0;"></div>`;
-            html += `<div style="text-align:center;font-size:11px;">Terima Kasih</div>`;
-            html += `<div style="text-align:center;font-size:9px;color:#666;margin-top:6px;line-height:1.5;">`;
+            html += `<div style="font-size:11px;margin-top:4px;">Terima Kasih</div>`;
+            html += `<div style="font-size:9px;color:#666;margin-top:6px;line-height:1.6;">`;
             html += `Jl. Tegal Mulya, Gerbang Belakang Kampus UMP<br>`;
             html += `Ledug, Kembaran, Purwokerto<br>`;
             html += `Jam Buka: Setiap Hari 10.00 - 21.00 WIB<br>`;
             html += `WA: 0823-2555-5586<br>`;
-            html += `IG: @warung_salem`;
+            html += `IG: @warung_salem<br>`;
+            html += `warungsalem.web.id`;
             html += `</div>`;
+            
+            html += `</div>`; // close centered wrapper
             
             content.innerHTML = html;
             modal.classList.remove('hidden');
