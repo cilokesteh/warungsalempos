@@ -562,17 +562,15 @@
             };
 
             try {
-                // Count today's transactions for receipt seq
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
+                // Count this year's transactions for receipt seq (resets Jan 1)
+                const yearStart = new Date(new Date().getFullYear(), 0, 1);
+                const yearEnd = new Date(new Date().getFullYear() + 1, 0, 1);
                 
-                const todaySnap = await db.collection('transactions')
-                    .where('timestamp', '>=', today)
-                    .where('timestamp', '<', tomorrow)
+                const yearSnap = await db.collection('transactions')
+                    .where('createdAt', '>=', yearStart.getTime())
+                    .where('createdAt', '<', yearEnd.getTime())
                     .get();
-                const receiptSeq = todaySnap.size + 1;
+                const receiptSeq = yearSnap.size + 1;
 
                 // Use server timestamp for Firestore
                 const now = firebase.firestore.FieldValue.serverTimestamp();
