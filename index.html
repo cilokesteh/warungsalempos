@@ -727,6 +727,34 @@
 
         function printReceipt() {
             const element = document.getElementById('receipt-content');
+            const receiptNo = window._lastReceiptNo || 'receipt';
+            
+            // Open print window with receipt content
+            const printWin = window.open('', '_blank', 'width=400,height=600');
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print ${receiptNo}</title>
+                    <style>
+                        @page { margin: 0; size: 80mm auto; }
+                        body { margin: 0; padding: 8px; font-family: 'Courier New', monospace; color: #000; }
+                        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    </style>
+                </head>
+                <body>${element.innerHTML}</body>
+                </html>
+            `);
+            printWin.document.close();
+            printWin.focus();
+            setTimeout(() => {
+                printWin.print();
+                printWin.close();
+            }, 500);
+        }
+
+        function downloadPdf() {
+            const element = document.getElementById('receipt-content');
             const opt = {
                 margin: 0,
                 filename: `${window._lastReceiptNo || 'receipt'}.pdf`,
@@ -735,10 +763,6 @@
                 jsPDF: { unit: 'mm', format: [80, 200] }
             };
             html2pdf().set(opt).from(element).save();
-        }
-
-        function downloadPdf() {
-            printReceipt();
         }
 
         async function loadTodayStats() {
