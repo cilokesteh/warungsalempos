@@ -516,6 +516,17 @@
                 html += '<span style="font-size:9px;color:red;font-weight:bold;">** REPRINT **</span>';
                 html += '</div>';
                 html += `<div style="border-top:1px dashed #000;margin:6px 0;"></div>`;
+                // Customer & Kasir
+                const custName = d.customerName || 'Walk-in';
+                const kasirName = d.kasirName || d.createdBy || 'admin';
+                html += `<div style="display:flex;justify-content:space-between;font-size:11px;">`;
+                html += `<span>Customer</span>`;
+                html += `<span>${custName}</span>`;
+                html += `</div>`;
+                html += `<div style="display:flex;justify-content:space-between;font-size:11px;">`;
+                html += `<span>Kasir</span>`;
+                html += `<span>${kasirName}</span>`;
+                html += `</div>`;
                 // Items
                 html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">`;
                 html += `<span style="font-weight:bold;">Item</span>`;

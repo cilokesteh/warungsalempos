@@ -170,6 +170,18 @@
                 <div id="payment-total" class="text-4xl font-bold text-emerald-400 mt-1">Rp 0</div>
             </div>
 
+            <!-- Customer & Kasir -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-sm text-zinc-400">Nama Customer</label>
+                    <input type="text" id="customer-name" placeholder="Walk-in" class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-3 py-2 mt-1 text-sm" onkeydown="if(event.key==='Enter')document.getElementById('cash-amount').focus()">
+                </div>
+                <div>
+                    <label class="text-sm text-zinc-400">Kasir</label>
+                    <input type="text" id="kasir-name" readonly class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-3 py-2 mt-1 text-sm text-zinc-400">
+                </div>
+            </div>
+
             <div class="mb-4">
                 <label class="text-sm text-zinc-400">Metode Pembayaran</label>
                 <div class="grid grid-cols-3 gap-2 mt-2">
@@ -459,9 +471,11 @@
             document.getElementById('payment-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
             document.getElementById('cash-amount').value = '';
             document.getElementById('change-amount').textContent = 'Rp 0';
+            document.getElementById('customer-name').value = '';
+            document.getElementById('kasir-name').value = currentUser ? currentUser.email : 'admin';
             document.getElementById('payment-modal').classList.remove('hidden');
             selectPaymentMethod('cash');
-            document.getElementById('cash-amount').focus();
+            document.getElementById('customer-name').focus();
         }
 
         function hidePaymentModal() {
@@ -574,6 +588,8 @@
                     cash,
                     change,
                     method: selectedPaymentMethod,
+                    customerName: document.getElementById('customer-name').value || 'Walk-in',
+                    kasirName: document.getElementById('kasir-name').value || currentUser?.email || 'admin',
                     timestamp: now,
                     receiptSeq,
                     createdAt: Date.now(),
@@ -638,8 +654,19 @@
             html += `<div style="font-size:10px;margin-top:2px;border:1px solid #ccc;display:inline-block;padding:0 6px;">${receiptNo}</div>`;
             html += `</div>`;
             
-            // Separator
             html += `<div style="border-top:1px dashed #000;margin:6px 0;"></div>`;
+            
+            // Customer & Kasir
+            const custName = transaction.customerName || 'Walk-in';
+            const kasirName = transaction.kasirName || transaction.createdBy || 'admin';
+            html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:2px;">`;
+            html += `<span>Customer</span>`;
+            html += `<span>${custName}</span>`;
+            html += `</div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:1px;">`;
+            html += `<span>Kasir</span>`;
+            html += `<span>${kasirName}</span>`;
+            html += `</div>`;
             
             // Item header
             html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">`;
