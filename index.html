@@ -326,6 +326,10 @@
                                 class="w-8 h-8 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs flex items-center justify-center">
                             <i class="fa-solid fa-pen"></i>
                         </button>
+                        <button onclick="event.stopPropagation(); deleteProduct('${product.id}')" 
+                                class="w-8 h-8 bg-red-600/80 hover:bg-red-600 rounded-lg text-xs flex items-center justify-center">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                         <button onclick="event.stopPropagation(); addToCart('${product.id}')" 
                                 class="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-xs flex items-center justify-center">
                             <i class="fa-solid fa-plus"></i>
@@ -452,6 +456,17 @@
                 db.collection('products').add(data);
             }
             hideProductModal();
+        }
+
+        async function deleteProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            if (!confirm(`Hapus "${product.name}"?\n\nProduk akan dihapus permanen dari daftar.`)) return;
+            try {
+                await db.collection('products').doc(productId).delete();
+            } catch (err) {
+                alert('Gagal menghapus: ' + err.message);
+            }
         }
 
         function selectPaymentMethod(method) {
