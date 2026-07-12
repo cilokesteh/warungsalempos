@@ -174,12 +174,16 @@
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div>
                     <label class="text-sm text-zinc-400">Nama Customer</label>
-                    <input type="text" id="customer-name" placeholder="Walk-in" class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-3 py-2 mt-1 text-sm" onkeydown="if(event.key==='Enter')document.getElementById('cash-amount').focus()">
+                    <input type="text" id="customer-name" placeholder="Walk-in" class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-3 py-2 mt-1 text-sm" onkeydown="if(event.key==='Enter')document.getElementById('customer-wa').focus()">
                 </div>
                 <div>
                     <label class="text-sm text-zinc-400">Kasir</label>
                     <input type="text" id="kasir-name" readonly class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-3 py-2 mt-1 text-sm text-zinc-400">
                 </div>
+            </div>
+            <div class="mb-4">
+                <label class="text-sm text-zinc-400">No. WhatsApp Customer (opsional)</label>
+                <input type="tel" id="customer-wa" placeholder="08xx-xxxx-xxxx" class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-3 py-2 mt-1 text-sm" onkeydown="if(event.key==='Enter')document.getElementById('cash-amount').focus()">
             </div>
 
             <div class="mb-4">
@@ -234,6 +238,7 @@
         <div class="absolute bottom-8 flex gap-3">
             <button onclick="printReceipt()" class="px-4 py-2 bg-emerald-600 text-white rounded-2xl text-sm"><i class="fa-solid fa-print mr-1"></i>Print</button>
             <button onclick="downloadPdf()" class="px-4 py-2 bg-zinc-700 text-white rounded-2xl text-sm"><i class="fa-solid fa-download mr-1"></i>PDF</button>
+            <button id="send-wa-btn" onclick="sendReceiptToWA()" class="hidden px-4 py-2 bg-green-500 text-white rounded-2xl text-sm"><i class="fa-brands fa-whatsapp mr-1"></i>Kirim WA</button>
             <button onclick="hideReceiptModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-2xl text-sm">Tutup</button>
         </div>
     </div>
@@ -472,6 +477,7 @@
             document.getElementById('cash-amount').value = '';
             document.getElementById('change-amount').textContent = 'Rp 0';
             document.getElementById('customer-name').value = '';
+            document.getElementById('customer-wa').value = '';
             document.getElementById('kasir-name').value = currentUser ? currentUser.email : 'admin';
             document.getElementById('payment-modal').classList.remove('hidden');
             selectPaymentMethod('cash');
@@ -587,6 +593,7 @@
                     change,
                     method: selectedPaymentMethod,
                     customerName: document.getElementById('customer-name').value || 'Walk-in',
+                    customerWA: document.getElementById('customer-wa').value || '',
                     kasirName: document.getElementById('kasir-name').value || currentUser?.email || 'admin',
                     timestamp: now,
                     receiptSeq,
@@ -595,6 +602,34 @@
                 };
 
                 await db.collection('transactions').add(transaction);
+
+                // Save/update customer to database
+                const waInput = document.getElementById('customer-wa').value.trim();
+                const nameInput = document.getElementById('customer-name').value.trim();
+                if (waInput) {
+                    // Check if customer exists by WA
+                    const custSnap = await db.collection('customers')
+                        .where('wa', '==', waInput)
+                        .limit(1)
+                        .get();
+                    if (custSnap.empty) {
+                        await db.collection('customers').add({
+                            name: nameInput || 'Walk-in',
+                            wa: waInput,
+                            totalSpent: total,
+                            visitCount: 1,
+                            createdAt: Date.now()
+                        });
+                    } else {
+                        const custDoc = custSnap.docs[0];
+                        await custDoc.ref.update({
+                            name: nameInput || custDoc.data().name,
+                            totalSpent: firebase.firestore.FieldValue.increment(total),
+                            visitCount: firebase.firestore.FieldValue.increment(1),
+                            lastVisit: Date.now()
+                        });
+                    }
+                }
 
                 // Update stock
                 for (const item of cart) {
@@ -719,6 +754,65 @@
             modal.classList.remove('hidden');
             
             window._lastReceiptNo = receiptNo;
+            window._lastReceiptData = transaction;
+            
+            // Show/hide WA button based on customer WA
+            const waBtn = document.getElementById('send-wa-btn');
+            if (transaction.customerWA) {
+                waBtn.classList.remove('hidden');
+            } else {
+                waBtn.classList.add('hidden');
+            }
+        }
+
+        function sendReceiptToWA() {
+            const t = window._lastReceiptData;
+            if (!t || !t.customerWA) {
+                alert('Customer tidak punya nomor WhatsApp');
+                return;
+            }
+            
+            // Convert WA number to international format (62xxx)
+            let wa = t.customerWA.replace(/[^0-9]/g, '');
+            if (wa.startsWith('0')) wa = '62' + wa.slice(1);
+            else if (!wa.startsWith('62')) wa = '62' + wa;
+            
+            const ts = new Date(t.createdAt || Date.now());
+            const dd = String(ts.getDate()).padStart(2, '0');
+            const MM = String(ts.getMonth() + 1).padStart(2, '0');
+            const yy = String(ts.getFullYear()).slice(-2);
+            const seq = String(t.receiptSeq || 1).padStart(6, '0');
+            const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
+            const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = `${dd}/${MM}/${yy}`;
+            const methodLabel = t.method === 'cash' ? 'Cash' : t.method === 'qris' ? 'QRIS' : 'Transfer';
+            
+            let msg = `*WARUNG SALEM*\n"Beuteng wareg awak jagjag"\n\n`;
+            msg += `${dateStr} ${timeStr}\nNo: ${receiptNo}\n`;
+            msg += `Customer: ${t.customerName || 'Walk-in'}\n`;
+            msg += `Kasir: ${t.kasirName || 'admin'}\n`;
+            msg += `${'─'.repeat(24)}\n`;
+            (t.items || []).forEach(item => {
+                msg += `${item.name} x${item.qty}  Rp ${(item.subtotal||0).toLocaleString('id-ID')}\n`;
+            });
+            msg += `${'─'.repeat(24)}\n`;
+            msg += `*TOTAL: Rp ${(t.total||0).toLocaleString('id-ID')}*\n`;
+            msg += `Metode: ${methodLabel}\n`;
+            if (t.method === 'cash' && t.cash) {
+                msg += `Tunai: Rp ${t.cash.toLocaleString('id-ID')}\n`;
+                msg += `Kembali: Rp ${(t.change||0).toLocaleString('id-ID')}\n`;
+            }
+            msg += `${'─'.repeat(24)}\n`;
+            msg += `Terima Kasih 🙏\n`;
+            msg += `Jl. Tegal Mulya, Gerbang Belakang Kampus UMP\n`;
+            msg += `Ledug, Kembaran, Purwokerto\n`;
+            msg += `Jam Buka: 10.00 - 21.00 WIB\n`;
+            msg += `WA: 0823-2555-5586\n`;
+            msg += `IG: @warung_salem\n`;
+            msg += `warungsalem.web.id`;
+            
+            const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
         }
 
         function hideReceiptModal() {
