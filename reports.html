@@ -50,6 +50,9 @@
                     <button onclick="prevPeriod()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm"><i class="fa-solid fa-chevron-left"></i></button>
                     <button onclick="nextPeriod()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm"><i class="fa-solid fa-chevron-right"></i></button>
                     <span id="period-label" class="text-zinc-400 text-sm ml-2"></span>
+                    <button onclick="exportPeriodExcel()" class="ml-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-sm text-white">
+                        <i class="fa-solid fa-file-excel mr-1"></i> Download Excel
+                    </button>
                 </div>
 
                 <!-- Summary Cards -->
@@ -350,6 +353,64 @@
             } catch (err) {
                 console.error(err);
                 loading.innerHTML = `<p class="text-red-400 text-center py-8">Error: ${err.message}</p>`;
+            }
+        }
+
+        // ─── Export Period (Daily/Weekly/Monthly/Yearly) to Excel ───
+        async function exportPeriodExcel() {
+            try {
+                const { start, end } = getDateRange();
+                const snap = await db.collection('transactions')
+                    .where('createdAt', '>=', start.getTime())
+                    .where('createdAt', '<', end.getTime())
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                if (snap.size === 0) {
+                    alert('Belum ada data untuk diexport');
+                    return;
+                }
+
+                const tabLabel = document.getElementById('period-label').textContent || 'Periode';
+                const data = snap.docs.map(doc => {
+                    const d = doc.data();
+                    const ts = new Date(d.createdAt || 0);
+                    const dd = String(ts.getDate()).padStart(2, '0');
+                    const MM = String(ts.getMonth() + 1).padStart(2, '0');
+                    const yy = String(ts.getFullYear()).slice(-2);
+                    const seq = String(d.receiptSeq || 0).padStart(6, '0');
+                    const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
+                    const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    const methodLabel = d.method === 'cash' ? 'Cash' : d.method === 'qris' ? 'QRIS' : 'Transfer';
+                    const itemsStr = (d.items || []).map(i => `${i.name}×${i.qty}`).join(', ');
+                    const custName = d.customerName || 'Walk-in';
+                    const kasir = d.kasirName || d.createdBy || 'admin';
+                    return {
+                        'No. Receipt': receiptNo,
+                        'Jam': timeStr,
+                        'Customer': custName,
+                        'Kasir': kasir,
+                        'Metode': methodLabel,
+                        'Total': d.total || 0,
+                        'Item': (d.items || []).length,
+                        'Detail Item': itemsStr,
+                    };
+                });
+
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Penjualan');
+                const colWidths = Object.keys(data[0]).map(k => ({
+                    wch: Math.max(k.length, ...data.map(r => String(r[k] || '').length)) + 2
+                }));
+                ws['!cols'] = colWidths;
+
+                const dateStr = new Date().toISOString().slice(0, 10);
+                const fileName = `Laporan_${tabLabel.replace(/[^a-zA-Z0-9]/g, '_')}_${dateStr}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+            } catch (err) {
+                console.error(err);
+                alert('Gagal export: ' + err.message);
             }
         }
 
