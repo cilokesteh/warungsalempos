@@ -13,7 +13,7 @@
     name: name + ' — POS',
     short_name: name,
     description: 'Point of Sale — ' + name,
-    start_url: './index.html',
+    start_url: './',
     scope: './',
     display: 'standalone',
     orientation: 'any',

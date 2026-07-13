@@ -2,9 +2,8 @@
 const CACHE = 'warung-salem-pos-v2';
 const ASSETS = [
   './',
-  './index.html',
-  './login.html',
-  './reports.html',
+  './login',
+  './reports',
   './pwa.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
