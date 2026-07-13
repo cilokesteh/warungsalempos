@@ -127,7 +127,12 @@
 
             <!-- History Section -->
             <div id="history-section" class="hidden space-y-4">
-                <h3 class="text-lg font-semibold">History Transaksi</h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">History Transaksi</h3>
+                    <button onclick="exportHistoryExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-sm text-white">
+                        <i class="fa-solid fa-file-excel mr-1"></i> Download Excel
+                    </button>
+                </div>
                 <div id="history-list" class="space-y-2 max-h-[600px] overflow-y-auto">
                     <p class="text-zinc-500 text-sm text-center py-4">Belum ada data</p>
                 </div>
@@ -609,6 +614,62 @@
                 printWin.print();
                 printWin.close();
             }, 500);
+        }
+
+        // ─── Export History to Excel ───
+        async function exportHistoryExcel() {
+            try {
+                const snap = await db.collection('transactions')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                if (snap.size === 0) {
+                    alert('Belum ada data untuk diexport');
+                    return;
+                }
+
+                const data = snap.docs.map(doc => {
+                    const d = doc.data();
+                    const ts = new Date(d.createdAt || 0);
+                    const dd = String(ts.getDate()).padStart(2, '0');
+                    const MM = String(ts.getMonth() + 1).padStart(2, '0');
+                    const yy = String(ts.getFullYear()).slice(-2);
+                    const seq = String(d.receiptSeq || 0).padStart(6, '0');
+                    const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
+                    const dateStr = `${dd}/${MM}/${yy}`;
+                    const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    const methodLabel = d.method === 'cash' ? 'Cash' : d.method === 'qris' ? 'QRIS' : 'Transfer';
+                    const itemsStr = (d.items || []).map(i => `${i.name}×${i.qty}`).join(', ');
+                    const custName = d.customerName || 'Walk-in';
+                    const kasir = d.kasirName || d.createdBy || 'admin';
+                    return {
+                        'No. Receipt': receiptNo,
+                        'Tanggal': dateStr,
+                        'Jam': timeStr,
+                        'Customer': custName,
+                        'Kasir': kasir,
+                        'Metode': methodLabel,
+                        'Total': d.total || 0,
+                        'Item': (d.items || []).length,
+                        'Detail Item': itemsStr,
+                    };
+                });
+
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'History');
+                // Auto column width
+                const colWidths = Object.keys(data[0]).map(k => ({
+                    wch: Math.max(k.length, ...data.map(r => String(r[k] || '').length)) + 2
+                }));
+                ws['!cols'] = colWidths;
+
+                const fileName = `HISTORY-POS-WarungSalem-${new Date().toISOString().slice(0, 10)}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+            } catch (err) {
+                console.error(err);
+                alert('Gagal export: ' + err.message);
+            }
         }
 
         function downloadReReceipt() {
