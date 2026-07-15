@@ -4,7 +4,7 @@
 // ║   dibuat runtime, lalu register service worker.  ║
 // ╚════════════════════════════════════════════════╝
 (function () {
-  var primary = '#10b981'; // emerald-500 — sama dgn tema Warung Salem
+  var primary = '#800000'; // maroon — tema Warung Salem
   var bg = '#0a0a0a';
   var name = 'Warung Salem';
 

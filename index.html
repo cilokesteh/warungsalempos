@@ -15,7 +15,7 @@
         <div class="bg-zinc-900 border-b border-zinc-800">
             <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-x-3">
-                    <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
+                    <div class="w-10 h-10 bg-[#991b1b] rounded-xl flex items-center justify-center">
                         <i class="fa-solid fa-store text-white text-xl"></i>
                     </div>
                     <div>
@@ -29,7 +29,7 @@
                         <span>Laporan</span>
                     </a>
                     <div class="px-4 py-1.5 bg-zinc-800 rounded-full text-sm flex items-center gap-x-2">
-                        <i class="fa-solid fa-user text-emerald-400"></i>
+                        <i class="fa-solid fa-user text-[#b91c1c]"></i>
                         <span id="admin-name">Admin</span>
                     </div>
                     <button onclick="logout()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-sm flex items-center gap-x-2 transition-colors">
@@ -53,7 +53,7 @@
                 </div>
                 <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
                     <div class="text-zinc-400 text-sm">Pendapatan Hari Ini</div>
-                    <div class="text-3xl font-bold mt-1 text-emerald-400" id="today-revenue">Rp 0</div>
+                    <div class="text-3xl font-bold mt-1 text-[#b91c1c]" id="today-revenue">Rp 0</div>
                 </div>
                 <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
                     <div class="text-zinc-400 text-sm">Stok Menipis (&lt; 5)</div>
@@ -69,7 +69,7 @@
                 <div class="lg:col-span-5 bg-zinc-900 rounded-3xl border border-zinc-800 p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-semibold text-lg">Daftar Produk</h2>
-                        <button onclick="showProductModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-sm flex items-center gap-x-2 transition-colors">
+                        <button onclick="showProductModal()" class="px-4 py-2 bg-[#800000] hover:bg-[#600000] rounded-2xl text-sm flex items-center gap-x-2 transition-colors">
                             <i class="fa-solid fa-plus"></i>
                             <span>Tambah</span>
                         </button>
@@ -77,12 +77,12 @@
 
                     <div class="mb-3">
                         <input type="text" id="search-product" placeholder="Cari produk..." 
-                               class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500"
+                               class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#800000]"
                                onkeyup="filterProducts()">
                     </div>
 
                     <div class="flex gap-2 mb-4 overflow-x-auto">
-                        <button onclick="setCategoryFilter('all')" class="category-tab px-4 py-2 bg-emerald-600 rounded-2xl text-xs" data-category="all">Semua</button>
+                        <button onclick="setCategoryFilter('all')" class="category-tab px-4 py-2 bg-[#800000] rounded-2xl text-xs" data-category="all">Semua</button>
                         <button onclick="setCategoryFilter('Makanan')" class="category-tab px-4 py-2 bg-zinc-800 rounded-2xl text-xs" data-category="Makanan">Makanan</button>
                         <button onclick="setCategoryFilter('Cemilan')" class="category-tab px-4 py-2 bg-zinc-800 rounded-2xl text-xs" data-category="Cemilan">Cemilan</button>
                         <button onclick="setCategoryFilter('Minuman')" class="category-tab px-4 py-2 bg-zinc-800 rounded-2xl text-xs" data-category="Minuman">Minuman</button>
@@ -112,7 +112,7 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
-                            <button onclick="showPaymentModal()" class="py-3.5 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-semibold">
+                            <button onclick="showPaymentModal()" class="py-3.5 bg-[#800000] hover:bg-[#600000] rounded-2xl font-semibold">
                                 <i class="fa-solid fa-credit-card mr-2"></i>Bayar
                             </button>
                             <button onclick="clearCart()" class="py-3.5 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-semibold">
@@ -156,7 +156,7 @@
             </div>
             <div class="flex gap-3 mt-6">
                 <button onclick="hideProductModal()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">Batal</button>
-                <button onclick="saveProduct()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-2xl">Simpan</button>
+                <button onclick="saveProduct()" class="flex-1 py-3 bg-[#800000] hover:bg-[#600000] rounded-2xl">Simpan</button>
             </div>
         </div>
     </div>
@@ -168,7 +168,7 @@
             
             <div class="text-center mb-6">
                 <div class="text-zinc-400">Total Belanja</div>
-                <div id="payment-total" class="text-4xl font-bold text-emerald-400 mt-1">Rp 0</div>
+                <div id="payment-total" class="text-4xl font-bold text-[#b91c1c] mt-1">Rp 0</div>
             </div>
 
             <!-- Customer & Kasir -->
@@ -190,9 +190,9 @@
             <div class="mb-4">
                 <label class="text-sm text-zinc-400">Metode Pembayaran</label>
                 <div class="grid grid-cols-3 gap-2 mt-2">
-                    <button onclick="selectPaymentMethod('cash')" id="method-cash" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-emerald-500 text-sm">Cash</button>
-                    <button onclick="selectPaymentMethod('qris')" id="method-qris" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-emerald-500 text-sm">QRIS</button>
-                    <button onclick="selectPaymentMethod('transfer')" id="method-transfer" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-emerald-500 text-sm">Transfer</button>
+                    <button onclick="selectPaymentMethod('cash')" id="method-cash" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-[#800000] text-sm">Cash</button>
+                    <button onclick="selectPaymentMethod('qris')" id="method-qris" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-[#800000] text-sm">QRIS</button>
+                    <button onclick="selectPaymentMethod('transfer')" id="method-transfer" class="py-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:border-[#800000] text-sm">Transfer</button>
                 </div>
             </div>
 
@@ -202,13 +202,13 @@
                 
                 <div class="flex justify-between mt-4 text-lg">
                     <span class="text-zinc-400">Kembalian</span>
-                    <span id="change-amount" class="font-bold text-emerald-400">Rp 0</span>
+                    <span id="change-amount" class="font-bold text-[#b91c1c]">Rp 0</span>
                 </div>
             </div>
 
             <div class="flex gap-3 mt-6">
                 <button onclick="hidePaymentModal()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">Batal</button>
-                <button onclick="confirmPayment()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-semibold">Konfirmasi</button>
+                <button onclick="confirmPayment()" class="flex-1 py-3 bg-[#800000] hover:bg-[#600000] rounded-2xl font-semibold">Konfirmasi</button>
             </div>
         </div>
     </div>
@@ -216,17 +216,17 @@
     <!-- Confirm Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
         <div class="bg-zinc-900 rounded-3xl w-full max-w-sm border border-zinc-800 p-6 mx-4 text-center">
-            <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fa-solid fa-check text-emerald-400 text-3xl"></i>
+            <div class="w-16 h-16 bg-[#991b1b]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-check text-[#b91c1c] text-3xl"></i>
             </div>
             <h3 class="font-semibold text-xl mb-2">Konfirmasi Pembayaran</h3>
             <p class="text-zinc-400 mb-1">Total: <span id="confirm-total" class="text-white font-bold">Rp 0</span></p>
             <p class="text-zinc-400 mb-1">Metode: <span id="confirm-method" class="text-white font-bold">Cash</span></p>
-            <p id="confirm-change-text" class="text-zinc-400 mb-6">Kembalian: <span id="confirm-change" class="text-emerald-400 font-bold">Rp 0</span></p>
+            <p id="confirm-change-text" class="text-zinc-400 mb-6">Kembalian: <span id="confirm-change" class="text-[#b91c1c] font-bold">Rp 0</span></p>
             
             <div class="flex gap-3">
                 <button onclick="hideConfirmModal()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">Batal</button>
-                <button onclick="finishPayment()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-semibold">Selesai</button>
+                <button onclick="finishPayment()" class="flex-1 py-3 bg-[#800000] hover:bg-[#600000] rounded-2xl font-semibold">Selesai</button>
             </div>
         </div>
     </div>
@@ -237,7 +237,7 @@
             <!-- Receipt content injected by JS -->
         </div>
         <div class="absolute bottom-8 flex gap-3">
-            <button onclick="printReceipt()" class="px-4 py-2 bg-emerald-600 text-white rounded-2xl text-sm"><i class="fa-solid fa-print mr-1"></i>Print</button>
+            <button onclick="printReceipt()" class="px-4 py-2 bg-[#800000] text-white rounded-2xl text-sm"><i class="fa-solid fa-print mr-1"></i>Print</button>
             <button onclick="downloadPdf()" class="px-4 py-2 bg-zinc-700 text-white rounded-2xl text-sm"><i class="fa-solid fa-download mr-1"></i>PDF</button>
             <button id="send-wa-btn" onclick="sendReceiptToWA()" class="hidden px-4 py-2 bg-green-500 text-white rounded-2xl text-sm"><i class="fa-brands fa-whatsapp mr-1"></i>Kirim WA</button>
             <button onclick="hideReceiptModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-2xl text-sm">Tutup</button>
@@ -315,12 +315,12 @@
 
             list.forEach(product => {
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-3 bg-zinc-950 rounded-2xl border border-zinc-800 hover:border-emerald-500';
+                div.className = 'flex justify-between items-center p-3 bg-zinc-950 rounded-2xl border border-zinc-800 hover:border-[#800000]';
                 div.innerHTML = `
                     <div class="flex-1 cursor-pointer" onclick="addToCart('${product.id}')">
                         <div class="font-medium">${product.name}</div>
-                        <div class="text-xs text-zinc-400">${product.category} • Stok: <span class="${product.stock >= 5 ? 'text-emerald-400' : 'text-red-400'}">${product.stock}</span></div>
-                        <div class="font-semibold text-emerald-400">Rp ${product.price.toLocaleString('id-ID')}</div>
+                        <div class="text-xs text-zinc-400">${product.category} • Stok: <span class="${product.stock >= 5 ? 'text-[#b91c1c]' : 'text-red-400'}">${product.stock}</span></div>
+                        <div class="font-semibold text-[#b91c1c]">Rp ${product.price.toLocaleString('id-ID')}</div>
                     </div>
                     <div class="flex gap-2 ml-2">
                         <button onclick="event.stopPropagation(); showProductModal(products.find(p=>p.id==='${product.id}'))" 
@@ -332,7 +332,7 @@
                             <i class="fa-solid fa-trash"></i>
                         </button>
                         <button onclick="event.stopPropagation(); addToCart('${product.id}')" 
-                                class="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-xs flex items-center justify-center">
+                                class="w-8 h-8 bg-[#800000] hover:bg-[#600000] rounded-lg text-xs flex items-center justify-center">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
@@ -350,7 +350,7 @@
         function setCategoryFilter(cat) {
             currentFilter = cat;
             document.querySelectorAll('.category-tab').forEach(el => {
-                el.classList.toggle('bg-emerald-600', el.dataset.category === cat);
+                el.classList.toggle('bg-[#800000]', el.dataset.category === cat);
                 el.classList.toggle('bg-zinc-800', el.dataset.category !== cat);
             });
             renderProducts();
@@ -473,10 +473,10 @@
         function selectPaymentMethod(method) {
             selectedPaymentMethod = method;
             document.querySelectorAll('[id^="method-"]').forEach(btn => {
-                btn.classList.remove('border-emerald-500', 'bg-emerald-900/30');
+                btn.classList.remove('border-[#800000]', 'bg-[#4a0000]/30');
             });
             const active = document.getElementById(`method-${method}`);
-            active.classList.add('border-emerald-500', 'bg-emerald-900/30');
+            active.classList.add('border-[#800000]', 'bg-[#4a0000]/30');
 
             const cashSection = document.getElementById('cash-section');
             if (method === 'cash') {
@@ -511,7 +511,7 @@
             
             const changeEl = document.getElementById('change-amount');
             if (cash >= total) {
-                changeEl.className = 'font-bold text-emerald-400';
+                changeEl.className = 'font-bold text-[#b91c1c]';
                 changeEl.textContent = `Rp ${change.toLocaleString('id-ID')}`;
             } else {
                 const kurang = total - cash;
@@ -913,7 +913,7 @@
             listEl.innerHTML = '';
             if (lowStock.length === 0) {
                 const div = document.createElement('div');
-                div.className = 'text-emerald-400 text-xs text-center';
+                div.className = 'text-[#b91c1c] text-xs text-center';
                 div.textContent = '✓ Semua stok aman';
                 listEl.appendChild(div);
             } else {
@@ -922,7 +922,7 @@
                     div.className = 'flex justify-between items-center';
                     div.innerHTML = `
                         <span>${p.name}</span>
-                        <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">${p.stock}</span>
+                        <span class="px-1.5 py-0.5 bg-[#991b1b]/20 text-[#b91c1c] rounded">${p.stock}</span>
                     `;
                     listEl.appendChild(div);
                 });
