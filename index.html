@@ -915,7 +915,7 @@
                 const methodLabel = t.method === 'cash' ? 'CASH' : t.method === 'qris' ? 'QRIS' : 'TRANSFER';
 
                 const itemCount = (t.items || []).length;
-                const estimatedHeight = 70 + (itemCount * 14) + 40;
+                const estimatedHeight = 70 + (itemCount * 14) + 60;
                 const doc = new jsPDF({ unit: 'mm', format: [w, Math.max(estimatedHeight, 100)], orientation: 'portrait' });
 
                 const mg = 4, cx = w / 2, right = w - mg, lineMax = w - 8;

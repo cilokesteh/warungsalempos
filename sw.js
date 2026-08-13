@@ -1,5 +1,5 @@
 // Service Worker — Warung Salem POS
-const CACHE = 'warung-salem-pos-v23';
+const CACHE = 'warung-salem-pos-v24';
 const ASSETS = [
   './',
   './login',
