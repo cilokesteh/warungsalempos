@@ -972,7 +972,14 @@
                 msg += `${'─'.repeat(24)}\n*TOTAL: Rp ${(t.total||0).toLocaleString('id-ID')}*\nMetode: ${methodLabel}\n`;
                 if (t.method === 'cash' && t.cash) { msg += `Tunai: Rp ${t.cash.toLocaleString('id-ID')}\nKembali: Rp ${(t.change||0).toLocaleString('id-ID')}\n`; }
                 msg += `${'─'.repeat(24)}\nTerima Kasih 🙏\n${CONFIG.storeAddress.replace(/\n/g, ', ')}\n${CONFIG.storeHours}\nWA: ${CONFIG.storeWA}\nIG: ${CONFIG.storeIG}\n${CONFIG.storeWebsite}`;
-            window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+            const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         async function loadTodayStats() {
