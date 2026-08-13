@@ -985,7 +985,8 @@
                 addrLines.forEach(line => { doc.text(line.trim(), cx, y, { align: 'center' }); y += 3.2; });
                 doc.text(CONFIG.storeHours || '', cx, y, { align: 'center' }); y += 3.2;
                 doc.text('WA: ' + (CONFIG.storeWA || ''), cx, y, { align: 'center' }); y += 3.2;
-                doc.text((CONFIG.storeIG || '') + '  ' + (CONFIG.storeWebsite || ''), cx, y, { align: 'center' });
+                doc.text(CONFIG.storeIG || '', cx, y, { align: 'center' }); y += 3.2;
+                doc.text(CONFIG.storeWebsite || '', cx, y, { align: 'center' });
 
                 return doc;
             } catch (e) { return null; }
