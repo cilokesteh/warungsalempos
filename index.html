@@ -876,7 +876,6 @@
         function buildTextReceipt(t, w) {
             if (!t) return null;
             try {
-                // Check jsPDF availability
                 const jspdfLib = window.jspdf || window.jsPDF;
                 if (!jspdfLib) return null;
                 const { jsPDF } = jspdfLib.jsPDF ? jspdfLib : { jsPDF: jspdfLib };
@@ -891,64 +890,105 @@
                 const dateStr = `${dd}/${MM}/${yy}`;
                 const seq = String(t.receiptSeq || 1).padStart(6, '0');
                 const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
+                const methodLabel = t.method === 'cash' ? 'CASH' : t.method === 'qris' ? 'QRIS' : 'TRANSFER';
 
-                // Calculate height needed
                 const itemCount = (t.items || []).length;
-                const estimatedHeight = 60 + (itemCount * 10) + 30;
-                
+                const estimatedHeight = 70 + (itemCount * 12) + 40;
                 const doc = new jsPDF({ unit: 'mm', format: [w, Math.max(estimatedHeight, 100)], orientation: 'portrait' });
-                let y = 5, lh = 4;
-                const mg = 3, cx = w / 2;
-                
+
+                const mg = 4, cx = w / 2, right = w - mg;
+                let y = 6, lh = 4.2;
+                const sep = '\u2550'.repeat(Math.floor((w - 8) / 2.2));
+                const thinSep = '\u2500'.repeat(Math.floor((w - 8) / 2.2));
+
+                // ── HEADER ──
+                doc.setFont('Courier', 'bold');
+                doc.setFontSize(14);
+                doc.text((CONFIG.storeName || 'STORE').toUpperCase(), cx, y, { align: 'center' }); y += 5.5;
+                doc.setFont('Courier', 'italic');
+                doc.setFontSize(7);
+                doc.text(`"${CONFIG.storeJargon || ''}"`, cx, y, { align: 'center' }); y += lh + 1;
                 doc.setFont('Courier', 'normal');
-                doc.setFontSize(12);
-                doc.text(CONFIG.storeName || 'Warung Salem', cx, y, { align: 'center' }); y += 5;
                 doc.setFontSize(7);
-                doc.text(`"${CONFIG.storeJargon || ''}"`, cx, y, { align: 'center' }); y += lh;
-                doc.text(`${dateStr} ${timeStr}`, cx, y, { align: 'center' }); y += lh;
-                doc.text(`#${receiptNo}`, cx, y, { align: 'center' }); y += lh + 1;
-                
-                // Separator
-                doc.text('-'.repeat(Math.floor((w - 6) / 1.5)), mg, y); y += lh;
-                
-                // Customer & Kasir
-                doc.text(`Customer: ${t.customerName || 'Walk-in'}`, mg, y); y += lh;
-                doc.text(`Kasir: ${t.kasirName || 'admin'}`, mg, y); y += lh + 1;
-                
-                // Separator
-                doc.text('-'.repeat(Math.floor((w - 6) / 1.5)), mg, y); y += lh;
-                
-                // Items
+                doc.text(dateStr + '  ' + timeStr, cx, y, { align: 'center' }); y += lh;
+                doc.text(receiptNo, cx, y, { align: 'center' }); y += lh + 2;
+
+                // ── DOUBLE LINE ──
+                doc.setFontSize(7);
+                doc.text(sep, mg, y); y += lh + 1;
+
+                // ── CUSTOMER & KASIR ──
+                doc.setFont('Courier', 'normal');
+                doc.setFontSize(7.5);
+                doc.text('Customer', mg, y);
+                doc.text(t.customerName || 'Walk-in', right, y, { align: 'right' }); y += lh;
+                doc.text('Kasir', mg, y);
+                doc.text(t.kasirName || 'admin', right, y, { align: 'right' }); y += lh + 1;
+
+                // ── THIN LINE ──
+                doc.text(thinSep, mg, y); y += lh + 1;
+
+                // ── ITEMS ──
+                doc.setFontSize(7.5);
                 (t.items || []).forEach(item => {
-                    const name = (item.name || '').substring(0, 20);
-                    doc.text(name, mg, y); y += lh;
-                    const sub = `Rp${(item.subtotal || item.price * item.qty || 0).toLocaleString('id-ID')}`;
-                    doc.text(`  ${item.qty}x @ Rp${(item.price || 0).toLocaleString('id-ID')}  = ${sub}`, mg, y); y += lh;
+                    const name = (item.name || '').substring(0, 22);
+                    const qty = item.qty || 1;
+                    const price = item.price || 0;
+                    const sub = item.subtotal || (price * qty);
+                    // Name + qty left, price right
+                    doc.setFont('Courier', 'bold');
+                    doc.text(name, mg, y);
+                    doc.setFont('Courier', 'normal');
+                    doc.text(qty + 'x', mg + name.length * 2.1 + 2, y);
+                    doc.text('Rp' + sub.toLocaleString('id-ID'), right, y, { align: 'right' });
+                    y += lh;
+                    // Unit price detail
+                    doc.setFontSize(6.5);
+                    doc.text('  @ Rp' + price.toLocaleString('id-ID'), mg + 2, y);
+                    doc.setFontSize(7.5);
+                    y += lh + 0.5;
                 });
-                
-                // Separator + totals
-                doc.text('-'.repeat(Math.floor((w - 6) / 1.5)), mg, y); y += lh + 1;
-                doc.setFontSize(9);
-                doc.text(`TOTAL: Rp${(t.total || 0).toLocaleString('id-ID')}`, mg, y); y += lh + 1;
-                doc.setFontSize(7);
+
+                // ── DOUBLE LINE ──
+                doc.text(sep, mg, y); y += lh + 2;
+
+                // ── TOTAL ──
+                doc.setFont('Courier', 'bold');
+                doc.setFontSize(10);
+                doc.text('TOTAL', mg, y);
+                doc.text('Rp' + (t.total || 0).toLocaleString('id-ID'), right, y, { align: 'right' });
+                y += lh + 2;
+
+                // ── PAYMENT INFO ──
+                doc.setFont('Courier', 'normal');
+                doc.setFontSize(7.5);
+                doc.text('Metode', mg, y);
+                doc.text(methodLabel, right, y, { align: 'right' }); y += lh;
                 if (t.method === 'cash') {
-                    doc.text(`Tunai: Rp${(t.cash || 0).toLocaleString('id-ID')}`, mg, y); y += lh;
-                    doc.text(`Kembali: Rp${(t.change || 0).toLocaleString('id-ID')}`, mg, y); y += lh;
-                } else {
-                    doc.text(`Metode: ${t.method === 'qris' ? 'QRIS' : 'Transfer'}`, mg, y); y += lh;
+                    doc.text('Tunai', mg, y);
+                    doc.text('Rp' + (t.cash || 0).toLocaleString('id-ID'), right, y, { align: 'right' }); y += lh;
+                    doc.text('Kembali', mg, y);
+                    doc.text('Rp' + (t.change || 0).toLocaleString('id-ID'), right, y, { align: 'right' }); y += lh;
                 }
-                
-                // Footer
-                y += 3;
+
+                // ── THIN LINE ──
+                y += 1;
+                doc.text(thinSep, mg, y); y += lh + 2;
+
+                // ── FOOTER ──
+                doc.setFont('Courier', 'bold');
                 doc.setFontSize(8);
-                doc.text('Terima Kasih', cx, y, { align: 'center' }); y += lh;
+                doc.text('Terima Kasih', cx, y, { align: 'center' }); y += lh + 1;
+                doc.setFont('Courier', 'normal');
                 doc.setFontSize(6);
-                doc.text(CONFIG.storeAddress.replace(/\n/g, ', '), cx, y, { align: 'center' }); y += lh;
-                doc.text(`${CONFIG.storeHours} | WA: ${CONFIG.storeWA}`, cx, y, { align: 'center' }); y += lh;
-                doc.text(`IG: ${CONFIG.storeIG} | ${CONFIG.storeWebsite}`, cx, y, { align: 'center' });
-                
+                const addrLines = (CONFIG.storeAddress || '').split('\n');
+                addrLines.forEach(line => { doc.text(line.trim(), cx, y, { align: 'center' }); y += 3.2; });
+                doc.text(CONFIG.storeHours || '', cx, y, { align: 'center' }); y += 3.2;
+                doc.text('WA: ' + (CONFIG.storeWA || ''), cx, y, { align: 'center' }); y += 3.2;
+                doc.text((CONFIG.storeIG || '') + '  ' + (CONFIG.storeWebsite || ''), cx, y, { align: 'center' });
+
                 return doc;
-            } catch (e) { console.error('buildTextReceipt error:', e); return null; }
+            } catch (e) { return null; }
         }
 
         function sendReceiptToWA() {
