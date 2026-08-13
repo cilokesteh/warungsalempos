@@ -14,60 +14,60 @@
     <div class="min-h-screen">
         <!-- Header -->
         <div class="bg-zinc-900 border-b border-zinc-800">
-            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-x-3">
-                    <div class="w-10 h-10 bg-[#991b1b] rounded-xl flex items-center justify-center">
-                        <i class="fa-solid fa-store text-white text-xl"></i>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+                <div class="flex items-center gap-x-2 sm:gap-x-3">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-[#991b1b] rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-store text-white text-lg sm:text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="font-bold text-2xl">Warung Salem</h1>
-                        <p class="text-xs text-zinc-500">Point of Sale</p>
+                        <h1 class="font-bold text-xl sm:text-2xl">Warung Salem</h1>
+                        <p class="text-xs text-zinc-500 hidden sm:block">Point of Sale</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-x-4">
-                    <a href="./reports" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm flex items-center gap-x-2">
+                <div class="flex items-center gap-x-2 sm:gap-x-4">
+                    <a href="./reports" class="px-3 sm:px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm flex items-center gap-x-1 sm:gap-x-2">
                         <i class="fa-solid fa-chart-bar"></i>
-                        <span>Laporan</span>
+                        <span class="hidden sm:inline">Laporan</span>
                     </a>
-                    <div class="px-4 py-1.5 bg-zinc-800 rounded-full text-sm flex items-center gap-x-2">
+                    <div class="hidden sm:flex px-4 py-1.5 bg-zinc-800 rounded-full text-sm items-center gap-x-2">
                         <i class="fa-solid fa-user text-[#b91c1c]"></i>
                         <span id="admin-name">Admin</span>
                     </div>
-                    <button onclick="logout()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-sm flex items-center gap-x-2 transition-colors">
+                    <button onclick="logout()" class="px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-sm flex items-center gap-x-1 sm:gap-x-2 transition-colors">
                         <i class="fa-solid fa-sign-out-alt"></i>
-                        <span>Logout</span>
+                        <span class="hidden sm:inline">Logout</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-6 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
             <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
-                    <div class="text-zinc-400 text-sm">Total Produk</div>
-                    <div class="text-3xl font-bold mt-1" id="total-products">0</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <div class="bg-zinc-900 rounded-2xl p-4 sm:p-5 border border-zinc-800">
+                    <div class="text-zinc-400 text-xs sm:text-sm">Total Produk</div>
+                    <div class="text-2xl sm:text-3xl font-bold mt-1" id="total-products">0</div>
                 </div>
-                <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
-                    <div class="text-zinc-400 text-sm">Transaksi Hari Ini</div>
-                    <div class="text-3xl font-bold mt-1" id="today-transactions">0</div>
+                <div class="bg-zinc-900 rounded-2xl p-4 sm:p-5 border border-zinc-800">
+                    <div class="text-zinc-400 text-xs sm:text-sm">Transaksi Hari Ini</div>
+                    <div class="text-2xl sm:text-3xl font-bold mt-1" id="today-transactions">0</div>
                 </div>
-                <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
-                    <div class="text-zinc-400 text-sm">Pendapatan Hari Ini</div>
-                    <div class="text-3xl font-bold mt-1 text-[#b91c1c]" id="today-revenue">Rp 0</div>
+                <div class="bg-zinc-900 rounded-2xl p-4 sm:p-5 border border-zinc-800">
+                    <div class="text-zinc-400 text-xs sm:text-sm">Pendapatan Hari Ini</div>
+                    <div class="text-2xl sm:text-3xl font-bold mt-1 text-[#b91c1c]" id="today-revenue">Rp 0</div>
                 </div>
-                <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
-                    <div class="text-zinc-400 text-sm">Stok Menipis (&lt; 5)</div>
-                    <div class="text-3xl font-bold mt-1 text-amber-400" id="low-stock">0</div>
+                <div class="bg-zinc-900 rounded-2xl p-4 sm:p-5 border border-zinc-800">
+                    <div class="text-zinc-400 text-xs sm:text-sm">Stok Menipis (&lt; 5)</div>
+                    <div class="text-2xl sm:text-3xl font-bold mt-1 text-amber-400" id="low-stock">0</div>
                     <div id="low-stock-list" class="mt-2 space-y-1 text-xs text-zinc-400 max-h-32 overflow-auto"></div>
                 </div>
             </div>
 
             <!-- Main Content -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                 
                 <!-- Product List -->
-                <div class="lg:col-span-5 bg-zinc-900 rounded-3xl border border-zinc-800 p-6">
+                <div class="lg:col-span-5 bg-zinc-900 rounded-3xl border border-zinc-800 p-4 sm:p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-semibold text-lg">Daftar Produk</h2>
                         <button onclick="showProductModal()" class="px-4 py-2 bg-[#800000] hover:bg-[#600000] rounded-2xl text-sm flex items-center gap-x-2 transition-colors">
@@ -96,7 +96,7 @@
                 </div>
 
                 <!-- Cart -->
-                <div class="lg:col-span-7 bg-zinc-900 rounded-3xl border border-zinc-800 p-6">
+                <div class="lg:col-span-7 bg-zinc-900 rounded-3xl border border-zinc-800 p-4 sm:p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-semibold text-lg">Keranjang</h2>
                         <button onclick="clearCart()" class="text-sm text-red-400 hover:text-red-500">Kosongkan</button>
@@ -380,7 +380,8 @@
 
             const existing = cart.find(item => item.id === productId);
             if (existing) {
-                if (existing.qty < product.stock) existing.qty++;
+                if (existing.qty >= product.stock) return alert(`Stok ${esc(product.name)} tersisa ${product.stock}`);
+                existing.qty++;
             } else {
                 cart.push({ ...product, qty: 1 });
             }
@@ -422,8 +423,15 @@
         }
 
         function changeQty(index, delta) {
-            cart[index].qty += delta;
-            if (cart[index].qty < 1) cart[index].qty = 1;
+            const item = cart[index];
+            const product = products.find(p => p.id === item.id);
+            const newQty = item.qty + delta;
+            if (newQty < 1) { removeFromCart(index); return; }
+            if (product && newQty > product.stock) {
+                alert(`Stok ${esc(product.name)} tersisa ${product.stock}`);
+                return;
+            }
+            item.qty = newQty;
             renderCart();
         }
 
@@ -465,7 +473,10 @@
             const stock = parseInt(document.getElementById('product-stock').value);
             const category = document.getElementById('product-category').value;
 
-            if (!name || isNaN(price) || isNaN(stock)) return alert('Lengkapi data');
+            if (!name || name.length > 100) return alert('Nama produk wajib diisi (maks 100 karakter)');
+            if (isNaN(price) || price < 0 || price > 99999999) return alert('Harga tidak valid (0-99.999.999)');
+            if (isNaN(stock) || stock < 0 || stock > 99999) return alert('Stok tidak valid (0-99.999)');
+            if (!['Makanan','Cemilan','Minuman','Lainnya'].includes(category)) return alert('Kategori tidak valid');
 
             const data = { name, price, stock, category };
 
@@ -586,21 +597,6 @@
                 change = cash - total;
             }
 
-            const transaction = {
-                items: cart.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                    qty: item.qty,
-                    subtotal: item.price * item.qty
-                })),
-                total,
-                cash,
-                change,
-                method: selectedPaymentMethod,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                createdBy: currentUser.email
-            };
-
             try {
                 // Count this year's transactions for receipt seq (resets Jan 1)
                 const yearStart = new Date(new Date().getFullYear(), 0, 1);
@@ -665,12 +661,13 @@
                     }
                 }
 
-                // Update stock
+                // Update stock (batch write for atomicity)
+                const batch = db.batch();
                 for (const item of cart) {
-                    await db.collection('products').doc(item.id).update({
-                        stock: firebase.firestore.FieldValue.increment(-item.qty)
-                    });
+                    const ref = db.collection('products').doc(item.id);
+                    batch.update(ref, { stock: firebase.firestore.FieldValue.increment(-item.qty) });
                 }
+                await batch.commit();
 
                 hideConfirmModal();
                 showReceipt(transaction);

@@ -1,1 +1,4 @@
 *.bak
+*.bak-*
+node_modules/
+.firebase/
