@@ -827,12 +827,36 @@
         }
 
         function downloadPdf() {
-            const element = document.getElementById('receipt-content');
-            const w = CONFIG.receipt.width || 80;
             const t = window._lastReceiptData;
+            const w = CONFIG.receipt.width || 80;
+            const filename = `${window._lastReceiptNo || 'receipt'}.pdf`;
+
+            // Primary: jsPDF text-based (works on all devices, no canvas dependency)
+            const doc = buildTextReceipt(t, w);
+            if (doc) {
+                // Mobile: use blob + download link (avoid popup blockers)
+                try {
+                    const blob = doc.output('blob');
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+                } catch (_) {
+                    doc.save(filename);
+                }
+                return;
+            }
+
+            // Fallback: html2pdf (desktop only, may fail in PWA)
+            const element = document.getElementById('receipt-content');
+            if (typeof html2pdf === 'undefined') { alert('PDF library belum ready, coba lagi'); return; }
             const opt = {
                 margin: 0,
-                filename: `${window._lastReceiptNo || 'receipt'}.pdf`,
+                filename,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: {
                     scale: 2,
@@ -841,29 +865,24 @@
                     allowTaint: true,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: Math.max(400, element.scrollWidth || window.innerWidth || document.documentElement.offsetWidth)
+                    windowWidth: Math.max(400, element.scrollWidth || 400)
                 },
                 jsPDF: { unit: 'mm', format: [w, 200] }
             };
-            html2pdf().set(opt).from(element).outputPdf('blob').then(blob => {
-                if (blob.size < 1000 && t) {
-                    const doc = buildTextReceipt(t, w);
-                    if (doc) doc.save(`${window._lastReceiptNo || 'receipt'}.pdf`);
-                    else { html2pdf().set(opt).from(element).save(); }
-                } else {
-                    html2pdf().set(opt).from(element).save();
-                }
-            }).catch(() => {
-                if (t) { const doc = buildTextReceipt(t, w); if (doc) doc.save(`${window._lastReceiptNo || 'receipt'}.pdf`); }
+            html2pdf().set(opt).from(element).save().catch(() => {
+                alert('Gagal download PDF. Coba gunakan Print.');
             });
         }
 
         function buildTextReceipt(t, w) {
             if (!t) return null;
             try {
-                if (typeof window.jspdf === 'undefined') return null;
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ unit: 'mm', format: [w, 150], orientation: 'portrait' });
+                // Check jsPDF availability
+                const jspdfLib = window.jspdf || window.jsPDF;
+                if (!jspdfLib) return null;
+                const { jsPDF } = jspdfLib.jsPDF ? jspdfLib : { jsPDF: jspdfLib };
+                if (!jsPDF) return null;
+
                 const ts = (t.createdAt && typeof t.createdAt === 'number') ? new Date(t.createdAt) :
                            (t.timestamp && t.timestamp?.toDate) ? new Date(t.timestamp.toDate()) : new Date();
                 const dd = String(ts.getDate()).padStart(2, '0');
@@ -873,34 +892,64 @@
                 const dateStr = `${dd}/${MM}/${yy}`;
                 const seq = String(t.receiptSeq || 1).padStart(6, '0');
                 const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
+
+                // Calculate height needed
+                const itemCount = (t.items || []).length;
+                const estimatedHeight = 60 + (itemCount * 10) + 30;
+                
+                const doc = new jsPDF({ unit: 'mm', format: [w, Math.max(estimatedHeight, 100)], orientation: 'portrait' });
                 let y = 5, lh = 4;
                 const mg = 3, cx = w / 2;
+                
                 doc.setFont('Courier', 'normal');
-                doc.setFontSize(10);
-                doc.text(CONFIG.storeName || 'Receipt', cx, y, { align: 'center' }); y += lh;
+                doc.setFontSize(12);
+                doc.text(CONFIG.storeName || 'Warung Salem', cx, y, { align: 'center' }); y += 5;
                 doc.setFontSize(7);
-                doc.text(`#${receiptNo}  ${dateStr} ${timeStr}`, cx, y, { align: 'center' }); y += lh;
-                doc.text(`Customer: ${t.customerName || 'Walk-in'}`, cx, y, { align: 'center' }); y += lh;
-                doc.text('─'.repeat(28), mg, y); y += lh + 1;
-                t.items.forEach(item => {
-                    doc.text(`${item.name}`, mg, y); y += lh;
+                doc.text(`"${CONFIG.storeJargon || ''}"`, cx, y, { align: 'center' }); y += lh;
+                doc.text(`${dateStr} ${timeStr}`, cx, y, { align: 'center' }); y += lh;
+                doc.text(`#${receiptNo}`, cx, y, { align: 'center' }); y += lh + 1;
+                
+                // Separator
+                doc.text('-'.repeat(Math.floor((w - 6) / 1.5)), mg, y); y += lh;
+                
+                // Customer & Kasir
+                doc.text(`Customer: ${t.customerName || 'Walk-in'}`, mg, y); y += lh;
+                doc.text(`Kasir: ${t.kasirName || 'admin'}`, mg, y); y += lh + 1;
+                
+                // Separator
+                doc.text('-'.repeat(Math.floor((w - 6) / 1.5)), mg, y); y += lh;
+                
+                // Items
+                (t.items || []).forEach(item => {
+                    const name = (item.name || '').substring(0, 20);
+                    doc.text(name, mg, y); y += lh;
                     const sub = `Rp${(item.subtotal || item.price * item.qty || 0).toLocaleString('id-ID')}`;
-                    doc.text(`  ${item.qty}x @ Rp${(item.price || 0).toLocaleString('id-ID')}  =  ${sub}`, mg, y); y += lh;
-                    if (item.imei) { doc.text(`  IMEI: ${item.imei}`, mg, y); y += lh; }
+                    doc.text(`  ${item.qty}x @ Rp${(item.price || 0).toLocaleString('id-ID')}  = ${sub}`, mg, y); y += lh;
                 });
-                doc.text('─'.repeat(28), mg, y); y += lh + 1;
+                
+                // Separator + totals
+                doc.text('-'.repeat(Math.floor((w - 6) / 1.5)), mg, y); y += lh + 1;
                 doc.setFontSize(9);
-                doc.text(`TOTAL: Rp${(t.total || 0).toLocaleString('id-ID')}`, mg, y); y += lh;
+                doc.text(`TOTAL: Rp${(t.total || 0).toLocaleString('id-ID')}`, mg, y); y += lh + 1;
                 doc.setFontSize(7);
                 if (t.method === 'cash') {
                     doc.text(`Tunai: Rp${(t.cash || 0).toLocaleString('id-ID')}`, mg, y); y += lh;
                     doc.text(`Kembali: Rp${(t.change || 0).toLocaleString('id-ID')}`, mg, y); y += lh;
-                } else { doc.text(`Metode: ${t.method === 'qris' ? 'QRIS' : 'Transfer'}`, mg, y); y += lh; }
-                y += 2;
+                } else {
+                    doc.text(`Metode: ${t.method === 'qris' ? 'QRIS' : 'Transfer'}`, mg, y); y += lh;
+                }
+                
+                // Footer
+                y += 3;
                 doc.setFontSize(8);
                 doc.text('Terima Kasih', cx, y, { align: 'center' }); y += lh;
+                doc.setFontSize(6);
+                doc.text(CONFIG.storeAddress.replace(/\n/g, ', '), cx, y, { align: 'center' }); y += lh;
+                doc.text(`${CONFIG.storeHours} | WA: ${CONFIG.storeWA}`, cx, y, { align: 'center' }); y += lh;
+                doc.text(`IG: ${CONFIG.storeIG} | ${CONFIG.storeWebsite}`, cx, y, { align: 'center' });
+                
                 return doc;
-            } catch (e) { return null; }
+            } catch (e) { console.error('buildTextReceipt error:', e); return null; }
         }
 
         function sendReceiptToWA() {
@@ -909,57 +958,32 @@
             let wa = t.customerWA.replace(/[^0-9]/g, '');
             if (wa.startsWith('0')) wa = '62' + wa.slice(1);
             else if (!wa.startsWith('62')) wa = '62' + wa;
-            const element = document.getElementById('receipt-content');
             const w = CONFIG.receipt.width || 80;
-            const opt = {
-                margin: 0,
-                filename: `${window._lastReceiptNo || 'receipt'}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: true,
-                    scrollX: 0, scrollY: 0,
-                    windowWidth: Math.max(400, element.scrollWidth || window.innerWidth || document.documentElement.offsetWidth)
-                },
-                jsPDF: { unit: 'mm', format: [w, 200] }
-            };
             (async () => {
+                // Try sharing PDF via Web Share API (mobile)
                 let pdfBlob = null;
-                try { pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob'); } catch(_) {}
-                if (!pdfBlob || pdfBlob.size < 1000) { try { const doc = buildTextReceipt(t, w); if (doc) pdfBlob = doc.output('blob'); } catch(_) {} }
-                if (pdfBlob && pdfBlob.size >= 1000) {
-                    try { const pdfFile = new File([pdfBlob], `${window._lastReceiptNo || 'receipt'}.pdf`, { type: 'application/pdf' });
-                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) { await navigator.share({ files: [pdfFile], title: `Struk ${window._lastReceiptNo || 'receipt'}` }); return; } } catch(_) {}
+                try { const doc = buildTextReceipt(t, w); if (doc) pdfBlob = doc.output('blob'); } catch(_) {}
+                if (pdfBlob && pdfBlob.size >= 500) {
+                    try {
+                        const pdfFile = new File([pdfBlob], `${window._lastReceiptNo || 'receipt'}.pdf`, { type: 'application/pdf' });
+                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                            await navigator.share({ files: [pdfFile], title: `Struk ${window._lastReceiptNo || 'receipt'}` });
+                            return;
+                        }
+                    } catch(_) {}
                 }
+                // Fallback: wa.me text message
                 const ts = t.createdAt ? new Date(t.createdAt) : new Date();
                 const dd = String(ts.getDate()).padStart(2, '0'); const MM = String(ts.getMonth() + 1).padStart(2, '0'); const yy = String(ts.getFullYear()).slice(-2);
                 const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 const dateStr = `${dd}/${MM}/${yy}`; const seq = String(t.receiptSeq || 1).padStart(6, '0'); const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
                 const methodLabel = t.method === 'cash' ? 'Cash' : t.method === 'qris' ? 'QRIS' : 'Transfer';
-                let msg = `*${CONFIG.storeName.toUpperCase()}*
-_"${CONFIG.storeJargon}"_
-
-`;
-                msg += `${dateStr} ${timeStr}
-No: ${receiptNo}
-Customer: ${t.customerName || 'Walk-in'}
-Kasir: ${t.kasirName || 'admin'}
-${'─'.repeat(24)}
-`;
-                (t.items || []).forEach(item => { msg += `${item.name} x${item.qty}  Rp ${(item.subtotal||0).toLocaleString('id-ID')}
-`; });
-                msg += `${'─'.repeat(24)}
-*TOTAL: Rp ${(t.total||0).toLocaleString('id-ID')}*
-Metode: ${methodLabel}
-`;
-                if (t.method === 'cash' && t.cash) { msg += `Tunai: Rp ${t.cash.toLocaleString('id-ID')}
-Kembali: Rp ${(t.change||0).toLocaleString('id-ID')}
-`; }
-                msg += `${'─'.repeat(24)}
-Terima Kasih 🙏
-${CONFIG.storeAddress}
-${CONFIG.storeHours}
-WA: ${CONFIG.storeWA}
-IG: ${CONFIG.storeIG}
-${CONFIG.storeWebsite}`;
+                let msg = `*${CONFIG.storeName.toUpperCase()}*\n_"${CONFIG.storeJargon}"_\n\n`;
+                msg += `${dateStr} ${timeStr}\nNo: ${receiptNo}\nCustomer: ${t.customerName || 'Walk-in'}\nKasir: ${t.kasirName || 'admin'}\n${'─'.repeat(24)}\n`;
+                (t.items || []).forEach(item => { msg += `${item.name} x${item.qty}  Rp ${(item.subtotal||0).toLocaleString('id-ID')}\n`; });
+                msg += `${'─'.repeat(24)}\n*TOTAL: Rp ${(t.total||0).toLocaleString('id-ID')}*\nMetode: ${methodLabel}\n`;
+                if (t.method === 'cash' && t.cash) { msg += `Tunai: Rp ${t.cash.toLocaleString('id-ID')}\nKembali: Rp ${(t.change||0).toLocaleString('id-ID')}\n`; }
+                msg += `${'─'.repeat(24)}\nTerima Kasih 🙏\n${CONFIG.storeAddress.replace(/\n/g, ', ')}\n${CONFIG.storeHours}\nWA: ${CONFIG.storeWA}\nIG: ${CONFIG.storeIG}\n${CONFIG.storeWebsite}`;
                 window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`, '_blank');
             })();
         }
