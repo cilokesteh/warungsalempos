@@ -672,6 +672,15 @@
                     }
                 }
 
+                // Re-check stock against DB before committing (prevents negative stock on stale data)
+                for (const item of cart) {
+                    const snap = await db.collection('products').doc(item.id).get();
+                    if (snap.exists && (snap.data().stock || 0) < item.qty) {
+                        alert('Stok "' + item.name + '" tidak mencukupi. Sisa: ' + (snap.data().stock || 0));
+                        return;
+                    }
+                }
+
                 // Update stock (batch write for atomicity)
                 const batch = db.batch();
                 for (const item of cart) {
