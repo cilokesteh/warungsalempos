@@ -58,10 +58,25 @@
   iconLink('apple-touch-icon', 'icons/apple-touch-icon.png');
   iconLink('icon', 'icons/favicon.png', 'image/png');
 
-  // 4) Register service worker
+  // 4) Register service worker + force update
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        // Check for SW update every page load
+        reg.addEventListener('updatefound', function () {
+          var newSW = reg.installing;
+          if (newSW) {
+            newSW.addEventListener('statechange', function () {
+              if (newSW.state === 'activated') {
+                // New SW activated → force reload to get fresh content
+                window.location.reload();
+              }
+            });
+          }
+        });
+        // Force check for update
+        reg.update();
+      }).catch(function () {});
     });
   }
 })();

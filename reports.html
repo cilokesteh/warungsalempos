@@ -646,11 +646,12 @@
                 html += `<div style="border-top:1px dashed #000;margin:8px 0;"></div>`;
                 html += `<div style="font-size:11px;margin-top:4px;">Terima Kasih</div>`;
                 html += `<div style="font-size:9px;color:#666;margin-top:6px;line-height:1.6;">`;
-                html += `${esc(CONFIG.storeAddress.replace(/\n/g, '<br>'))}<br>`;
-                html += `${esc(CONFIG.storeHours)}<br>`;
-                html += `WA: ${esc(CONFIG.storeWA)}<br>`;
-                html += `IG: ${esc(CONFIG.storeIG)}<br>`;
-                html += `${esc(CONFIG.storeWebsite)}`;
+                const addrLines = CONFIG.storeAddress.split('\n');
+                addrLines.forEach(line => { html += `${line.trim()}<br>`; });
+                html += `${CONFIG.storeHours}<br>`;
+                html += `WA: ${CONFIG.storeWA}<br>`;
+                html += `IG: ${CONFIG.storeIG}<br>`;
+                html += `${CONFIG.storeWebsite}`;
                 html += `</div>`;
                 html += `</div>`;
 
