@@ -946,7 +946,7 @@
                     const price = item.price || 0;
                     const sub = item.subtotal || (price * qty);
                     // Name + qty left, price right
-                    doc.setFont('Courier', 'bold');
+                    doc.setFont('Helvetica', 'bold');
                     doc.text(name, mg, y);
                     doc.setFont('Helvetica', 'normal');
                     doc.text(qty + 'x', mg + name.length * 2.1 + 2, y);
@@ -963,7 +963,7 @@
                 doc.text(sep, mg, y); y += lh + 2;
 
                 // ── TOTAL ──
-                doc.setFont('Courier', 'bold');
+                doc.setFont('Helvetica', 'bold');
                 doc.setFontSize(10);
                 doc.text('TOTAL', mg, y);
                 doc.text('Rp' + (t.total || 0).toLocaleString('id-ID'), right, y, { align: 'right' });
@@ -986,7 +986,7 @@
                 doc.text(thinSep, mg, y); y += lh + 2;
 
                 // ── FOOTER ──
-                doc.setFont('Courier', 'bold');
+                doc.setFont('Helvetica', 'bold');
                 doc.setFontSize(8);
                 doc.text('Terima Kasih', cx, y, { align: 'center' }); y += lh + 1;
                 doc.setFont('Helvetica', 'normal');
