@@ -634,12 +634,11 @@
                 html += `<div style="border-top:1px dashed #000;margin:8px 0;"></div>`;
                 html += `<div style="font-size:11px;margin-top:4px;">Terima Kasih</div>`;
                 html += `<div style="font-size:9px;color:#666;margin-top:6px;line-height:1.6;">`;
-                html += `Jl. Tegal Mulya, Gerbang Belakang Kampus UMP<br>`;
-                html += `Ledug, Kembaran, Purwokerto<br>`;
-                html += `Jam Buka: Setiap Hari 10.00 - 21.00 WIB<br>`;
-                html += `WA: 0823-2555-5586<br>`;
-                html += `IG: @warung_salem<br>`;
-                html += `warungsalem.web.id`;
+                html += `${esc(CONFIG.storeAddress.replace(/\n/g, '<br>'))}<br>`;
+                html += `${esc(CONFIG.storeHours)}<br>`;
+                html += `WA: ${esc(CONFIG.storeWA)}<br>`;
+                html += `IG: ${esc(CONFIG.storeIG)}<br>`;
+                html += `${esc(CONFIG.storeWebsite)}`;
                 html += `</div>`;
                 html += `</div>`;
 
@@ -660,6 +659,10 @@
             const receiptNo = window._reReceiptNo || 'receipt';
             
             const printWin = window.open('', '_blank', 'width=400,height=600');
+            if (!printWin) {
+                alert('Pop-up diblokir. Izinkan pop-up untuk situs ini agar fitur Print berfungsi.');
+                return;
+            }
             printWin.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -740,12 +743,63 @@
 
         function downloadReReceipt() {
             const element = document.getElementById('reprint-content');
+            const w = CONFIG.receipt.width || 80;
+
+            // Primary: jsPDF text-based
+            try {
+                const jspdfLib = window.jspdf || window.jsPDF;
+                if (jspdfLib && reprintData) {
+                    const { jsPDF } = jspdfLib.jsPDF ? jspdfLib : { jsPDF: jspdfLib };
+                    if (jsPDF) {
+                        const t = reprintData;
+                        const ts = (t.createdAt && typeof t.createdAt === 'number') ? new Date(t.createdAt) :
+                                   (t.timestamp && t.timestamp?.toDate) ? new Date(t.timestamp.toDate()) : new Date();
+                        const dd = String(ts.getDate()).padStart(2, '0');
+                        const MM = String(ts.getMonth() + 1).padStart(2, '0');
+                        const yy = String(ts.getFullYear()).slice(-2);
+                        const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        const dateStr = dd + '/' + MM + '/' + yy;
+                        const seq = String(t.receiptSeq || 0).padStart(6, '0');
+                        const receiptNo = 'POS-' + dd + MM + yy + '-' + seq;
+                        const itemCount = (t.items || []).length;
+                        const estimatedHeight = 60 + (itemCount * 10) + 30;
+                        const doc = new jsPDF({ unit: 'mm', format: [w, Math.max(estimatedHeight, 100)], orientation: 'portrait' });
+                        let y = 5, lh = 4, mg = 3, cx = w / 2;
+                        doc.setFont('Courier', 'normal');
+                        doc.setFontSize(10);
+                        doc.text(CONFIG.storeName || 'Receipt', cx, y, { align: 'center' }); y += lh;
+                        doc.setFontSize(7);
+                        doc.text('REPRINT #' + receiptNo + '  ' + dateStr + ' ' + timeStr, cx, y, { align: 'center' }); y += lh;
+                        doc.text('Customer: ' + (t.customerName || 'Walk-in'), cx, y, { align: 'center' }); y += lh;
+                        doc.text('-'.repeat(28), mg, y); y += lh + 1;
+                        (t.items || []).forEach(item => {
+                            doc.text(item.name || '', mg, y); y += lh;
+                            doc.text('  ' + item.qty + 'x Rp' + (item.subtotal || 0).toLocaleString('id-ID'), mg, y); y += lh;
+                        });
+                        doc.text('-'.repeat(28), mg, y); y += lh + 1;
+                        doc.setFontSize(9);
+                        doc.text('TOTAL: Rp' + (t.total || 0).toLocaleString('id-ID'), mg, y); y += lh + 1;
+                        doc.setFontSize(8);
+                        doc.text('Terima Kasih (REPRINT)', cx, y, { align: 'center' });
+                        const blob = doc.output('blob');
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url; a.download = 'REPRINT-' + (window._reReceiptNo || 'receipt') + '.pdf';
+                        a.style.display = 'none'; document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+                        return;
+                    }
+                }
+            } catch (_) {}
+
+            // Fallback: html2pdf
             const opt = {
                 margin: 0,
-                filename: `REPRINT-${window._reReceiptNo || 'receipt'}.pdf`,
+                filename: 'REPRINT-' + (window._reReceiptNo || 'receipt') + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: [80, 200] }
+                jsPDF: { unit: 'mm', format: [w, 200] }
             };
             html2pdf().set(opt).from(element).save();
         }

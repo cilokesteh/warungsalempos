@@ -771,12 +771,11 @@
             html += `<div style="border-top:1px dashed #000;margin:8px 0;"></div>`;
             html += `<div style="font-size:11px;margin-top:4px;">Terima Kasih</div>`;
             html += `<div style="font-size:9px;color:#666;margin-top:6px;line-height:1.6;">`;
-            html += `Jl. Tegal Mulya, Gerbang Belakang Kampus UMP<br>`;
-            html += `Ledug, Kembaran, Purwokerto<br>`;
-            html += `Jam Buka: Setiap Hari 10.00 - 21.00 WIB<br>`;
-            html += `WA: 0823-2555-5586<br>`;
-            html += `IG: @warung_salem<br>`;
-            html += `warungsalem.web.id`;
+            html += `${esc(CONFIG.storeAddress.replace(/\n/g, '<br>'))}<br>`;
+            html += `${esc(CONFIG.storeHours)}<br>`;
+            html += `WA: ${esc(CONFIG.storeWA)}<br>`;
+            html += `IG: ${esc(CONFIG.storeIG)}<br>`;
+            html += `${esc(CONFIG.storeWebsite)}`;
             html += `</div>`;
             
             html += `</div>`; // close centered wrapper
