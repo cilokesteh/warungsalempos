@@ -288,15 +288,25 @@
             receipt: { width: 80 }
         };
 
-        // Auth check
+        // Auth check — debounce for iOS Safari PWA (IndexedDB init race)
+        let _authReady = false;
+        let _authTimer = null;
         auth.onAuthStateChanged(user => {
-            if (!user) {
-                window.location.href = 'login.html';
-            } else {
+            if (_authTimer) clearTimeout(_authTimer);
+            if (user) {
+                _authReady = true;
                 currentUser = user;
                 document.getElementById('admin-name').textContent = user.email.split('@')[0];
                 loadProducts();
                 loadTodayStats();
+            } else if (_authReady) {
+                // Had a user before, now lost — session expired, redirect
+                window.location.href = 'login.html';
+            } else {
+                // Never had a user yet — debounce 3s for iOS IndexedDB init
+                _authTimer = setTimeout(() => {
+                    if (!currentUser) window.location.href = 'login.html';
+                }, 3000);
             }
         });
 
