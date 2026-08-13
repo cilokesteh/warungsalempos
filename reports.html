@@ -810,7 +810,8 @@
                         (t.items || []).forEach(item => {
                             const name = (item.name || '').substring(0, 24);
                             const qty = item.qty || 1;
-                            const sub = item.subtotal || ((item.price || 0) * qty);
+                            const price = item.price || 0;
+                            const sub = item.subtotal || (price * qty);
                             const priceStr = 'Rp' + sub.toLocaleString('id-ID');
                             doc.setFont('Helvetica', 'bold');
                             const availLeft = (right - mg) - doc.getTextWidth(priceStr) - 3;
@@ -819,7 +820,17 @@
                             doc.text(label, mg, y);
                             doc.setFont('Helvetica', 'normal');
                             doc.text(priceStr, right, y, { align: 'right' });
-                            y += lh + 1;
+                            y += lh;
+                            doc.setFontSize(6.5);
+                            doc.text('@ Rp' + price.toLocaleString('id-ID') + ' x ' + qty, mg + 2, y);
+                            doc.setFontSize(7.5);
+                            y += lh + 0.5;
+                            if (item.imei) {
+                                doc.setFontSize(6.5);
+                                doc.text('  IMEI: ' + item.imei, mg + 2, y);
+                                doc.setFontSize(7.5);
+                                y += lh;
+                            }
                         });
                         drawLine(y, true); y += 3;
                         doc.setFont('Helvetica', 'bold');
@@ -828,10 +839,23 @@
                         doc.setFont('Helvetica', 'normal');
                         doc.setFontSize(8);
                         doc.text('Metode', mg, y); doc.text(methodLabel, right, y, { align: 'right' }); y += lh;
+                        if (t.method === 'cash') {
+                            doc.text('Tunai', mg, y);
+                            doc.text('Rp' + (t.cash || 0).toLocaleString('id-ID'), right, y, { align: 'right' }); y += lh;
+                            doc.text('Kembali', mg, y);
+                            doc.text('Rp' + (t.change || 0).toLocaleString('id-ID'), right, y, { align: 'right' }); y += lh;
+                        }
                         drawLine(y, false); y += 3;
                         doc.setFont('Helvetica', 'bold');
                         doc.setFontSize(9);
-                        doc.text('Terima Kasih (REPRINT)', cx, y, { align: 'center' });
+                        doc.text('Terima Kasih (REPRINT)', cx, y, { align: 'center' }); y += lh + 1;
+                        doc.setFont('Helvetica', 'normal');
+                        doc.setFontSize(6.5);
+                        (CONFIG.storeAddress || '').split('\n').forEach(function(line) { doc.text(line.trim(), cx, y, { align: 'center' }); y += 3.2; });
+                        doc.text(CONFIG.storeHours || '', cx, y, { align: 'center' }); y += 3.2;
+                        doc.text('WA: ' + (CONFIG.storeWA || ''), cx, y, { align: 'center' }); y += 3.2;
+                        doc.text(CONFIG.storeIG || '', cx, y, { align: 'center' }); y += 3.2;
+                        doc.text(CONFIG.storeWebsite || '', cx, y, { align: 'center' });
                         const blob = doc.output('blob');
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
