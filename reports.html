@@ -796,12 +796,12 @@
                         doc.setFontSize(7);
                         doc.text('** REPRINT **  ' + dateStr + ' ' + timeStr, cx, y, { align: 'center' }); y += lh;
                         doc.text(receiptNo, cx, y, { align: 'center' }); y += lh + 2;
-                        drawLine(y, true); y += 2;
+                        drawLine(y, true); y += 7;
                         doc.setFont('Helvetica', 'normal');
                         doc.setFontSize(8);
                         doc.text('Customer', mg, y); doc.text(t.customerName || 'Walk-in', right, y, { align: 'right' }); y += lh;
                         doc.text('Kasir', mg, y); doc.text(t.kasirName || 'admin', right, y, { align: 'right' }); y += lh + 1;
-                        drawLine(y, false); y += 2;
+                        drawLine(y, false); y += 5.5;
                         doc.setFont('Helvetica', 'bold');
                         doc.setFontSize(7.5);
                         doc.text('Item', mg, y);
@@ -832,7 +832,8 @@
                                 y += lh;
                             }
                         });
-                        drawLine(y, true); y += 3;
+                        y += 3;
+                        drawLine(y, true); y += 7;
                         doc.setFont('Helvetica', 'bold');
                         doc.setFontSize(11);
                         doc.text('TOTAL', mg, y); doc.text('Rp' + (t.total || 0).toLocaleString('id-ID'), right, y, { align: 'right' }); y += lh + 2;
@@ -845,7 +846,7 @@
                             doc.text('Kembali', mg, y);
                             doc.text('Rp' + (t.change || 0).toLocaleString('id-ID'), right, y, { align: 'right' }); y += lh;
                         }
-                        drawLine(y, false); y += 3;
+                        drawLine(y, false); y += 5.5;
                         doc.setFont('Helvetica', 'bold');
                         doc.setFontSize(9);
                         doc.text('Terima Kasih (REPRINT)', cx, y, { align: 'center' }); y += lh + 1;

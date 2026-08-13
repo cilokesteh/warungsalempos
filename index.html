@@ -939,7 +939,8 @@
                 doc.text(receiptNo, cx, y, { align: 'center' }); y += lh + 2;
 
                 // ── THICK LINE ──
-                drawLine(y, true); y += 2;
+                y += 3;
+                drawLine(y, true); y += 7;
 
                 // ── CUSTOMER & KASIR ──
                 doc.setFont('Helvetica', 'normal');
@@ -950,7 +951,7 @@
                 doc.text(t.kasirName || 'admin', right, y, { align: 'right' }); y += lh + 1;
 
                 // ── THIN LINE ──
-                drawLine(y, false); y += 2;
+                drawLine(y, false); y += 5.5;
 
                 // ── ITEMS HEADER ──
                 doc.setFont('Helvetica', 'bold');
@@ -981,7 +982,8 @@
                 });
 
                 // ── THICK LINE ──
-                drawLine(y, true); y += 3;
+                y += 3;
+                drawLine(y, true); y += 7;
 
                 // ── TOTAL ──
                 doc.setFont('Helvetica', 'bold');
@@ -1004,7 +1006,7 @@
 
                 // ── THIN LINE ──
                 y += 1;
-                drawLine(y, false); y += 3;
+                drawLine(y, false); y += 5.5;
 
                 // ── FOOTER ──
                 doc.setFont('Helvetica', 'bold');
