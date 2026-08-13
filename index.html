@@ -233,11 +233,11 @@
     </div>
 
     <!-- Receipt Modal -->
-    <div id="receipt-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div id="receipt-content" class="bg-white text-black mx-4 font-mono text-[13px] leading-tight" style="width:80mm;max-width:320px;padding:8px;">
+    <div id="receipt-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-start overflow-auto py-4">
+        <div id="receipt-content" class="bg-white text-black mx-4 font-mono text-[13px] leading-tight flex-shrink-0" style="width:80mm;max-width:320px;padding:8px;">
             <!-- Receipt content injected by JS -->
         </div>
-        <div class="absolute bottom-8 flex gap-3">
+        <div class="flex flex-wrap gap-2 justify-center mt-4 px-4 pb-4 flex-shrink-0">
             <button onclick="printReceipt()" class="px-4 py-2 bg-[#800000] text-white rounded-2xl text-sm"><i class="fa-solid fa-print mr-1"></i>Print</button>
             <button onclick="downloadPdf()" class="px-4 py-2 bg-zinc-700 text-white rounded-2xl text-sm"><i class="fa-solid fa-download mr-1"></i>PDF</button>
             <button id="send-wa-btn" onclick="sendReceiptToWA()" class="px-4 py-2 bg-green-500 text-white rounded-2xl text-sm"><i class="fa-brands fa-whatsapp mr-1"></i>Kirim WA</button>
