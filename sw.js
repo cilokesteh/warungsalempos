@@ -1,5 +1,5 @@
 // Service Worker — Warung Salem POS
-const CACHE = 'warung-salem-pos-v18';
+const CACHE = 'warung-salem-pos-v19';
 const ASSETS = [
   './',
   './login',
@@ -31,7 +31,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = e.request.url;
   // Firebase/API → jangan cache, biar fresh
-  if (url.includes('firestore') || url.includes('googleapis') || url.includes('firebase') || url.includes('gstatic')) {
+  if (url.includes('firestore') || url.includes('googleapis') || url.includes('firebase') || url.includes('gstatic') ||
+      url.includes('cdnjs') || url.includes('cdn.tailwindcss') || url.includes('cdn.jsdelivr')) {
     return;
   }
 
