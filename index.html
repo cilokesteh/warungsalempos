@@ -956,10 +956,14 @@
                     const qty = item.qty || 1;
                     const price = item.price || 0;
                     const sub = item.subtotal || (price * qty);
+                    const priceStr = 'Rp' + sub.toLocaleString('id-ID');
                     doc.setFont('Helvetica', 'bold');
-                    doc.text(name + ' x' + qty, mg, y);
+                    const availLeft = (right - mg) - doc.getTextWidth(priceStr) - 3;
+                    let label = name + ' x' + qty;
+                    while (label.length > 4 && doc.getTextWidth(label) > availLeft) label = label.slice(0, -1);
+                    doc.text(label, mg, y);
                     doc.setFont('Helvetica', 'normal');
-                    doc.text('Rp' + sub.toLocaleString('id-ID'), right, y, { align: 'right' });
+                    doc.text(priceStr, right, y, { align: 'right' });
                     y += lh;
                     doc.setFontSize(6.5);
                     doc.text('@ Rp' + price.toLocaleString('id-ID') + ' x ' + qty, mg + 2, y);
