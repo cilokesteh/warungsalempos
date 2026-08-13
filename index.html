@@ -810,7 +810,7 @@
                     <title>Print ${receiptNo}</title>
                     <style>
                         @page { margin: 0; size: 80mm auto; }
-                        body { margin: 0; padding: 8px; font-family: 'Courier New', monospace; color: #000; }
+                        body { margin: 0; padding: 8px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; }
                         * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                     </style>
                 </head>
@@ -902,13 +902,13 @@
                 const thinSep = '\u2500'.repeat(Math.floor((w - 8) / 2.2));
 
                 // ── HEADER ──
-                doc.setFont('Courier', 'bold');
+                doc.setFont('Helvetica', 'bold');
                 doc.setFontSize(14);
                 doc.text((CONFIG.storeName || 'STORE').toUpperCase(), cx, y, { align: 'center' }); y += 5.5;
-                doc.setFont('Courier', 'italic');
+                doc.setFont('Helvetica', 'italic');
                 doc.setFontSize(7);
                 doc.text(`"${CONFIG.storeJargon || ''}"`, cx, y, { align: 'center' }); y += lh + 1;
-                doc.setFont('Courier', 'normal');
+                doc.setFont('Helvetica', 'normal');
                 doc.setFontSize(7);
                 doc.text(dateStr + '  ' + timeStr, cx, y, { align: 'center' }); y += lh;
                 doc.text(receiptNo, cx, y, { align: 'center' }); y += lh + 2;
@@ -918,7 +918,7 @@
                 doc.text(sep, mg, y); y += lh + 1;
 
                 // ── CUSTOMER & KASIR ──
-                doc.setFont('Courier', 'normal');
+                doc.setFont('Helvetica', 'normal');
                 doc.setFontSize(7.5);
                 doc.text('Customer', mg, y);
                 doc.text(t.customerName || 'Walk-in', right, y, { align: 'right' }); y += lh;
@@ -938,7 +938,7 @@
                     // Name + qty left, price right
                     doc.setFont('Courier', 'bold');
                     doc.text(name, mg, y);
-                    doc.setFont('Courier', 'normal');
+                    doc.setFont('Helvetica', 'normal');
                     doc.text(qty + 'x', mg + name.length * 2.1 + 2, y);
                     doc.text('Rp' + sub.toLocaleString('id-ID'), right, y, { align: 'right' });
                     y += lh;
@@ -960,7 +960,7 @@
                 y += lh + 2;
 
                 // ── PAYMENT INFO ──
-                doc.setFont('Courier', 'normal');
+                doc.setFont('Helvetica', 'normal');
                 doc.setFontSize(7.5);
                 doc.text('Metode', mg, y);
                 doc.text(methodLabel, right, y, { align: 'right' }); y += lh;
@@ -979,7 +979,7 @@
                 doc.setFont('Courier', 'bold');
                 doc.setFontSize(8);
                 doc.text('Terima Kasih', cx, y, { align: 'center' }); y += lh + 1;
-                doc.setFont('Courier', 'normal');
+                doc.setFont('Helvetica', 'normal');
                 doc.setFontSize(6);
                 const addrLines = (CONFIG.storeAddress || '').split('\n');
                 addrLines.forEach(line => { doc.text(line.trim(), cx, y, { align: 'center' }); y += 3.2; });
