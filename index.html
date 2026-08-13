@@ -954,26 +954,15 @@
 
         function sendReceiptToWA() {
             const t = window._lastReceiptData;
-            if (!t || !t.customerWA) { alert('Customer tidak punya nomor WhatsApp'); return; }
-            let wa = t.customerWA.replace(/[^0-9]/g, '');
+            if (!t) { alert('Data struk tidak tersedia.'); return; }
+            let wa = String(t.customerWA || '').replace(/\D/g, '');
+            if (!wa) { alert('Customer tidak punya nomor WhatsApp'); return; }
             if (wa.startsWith('0')) wa = '62' + wa.slice(1);
+            else if (wa.startsWith('8')) wa = '62' + wa;
             else if (!wa.startsWith('62')) wa = '62' + wa;
-            const w = CONFIG.receipt.width || 80;
-            (async () => {
-                // Try sharing PDF via Web Share API (mobile)
-                let pdfBlob = null;
-                try { const doc = buildTextReceipt(t, w); if (doc) pdfBlob = doc.output('blob'); } catch(_) {}
-                if (pdfBlob && pdfBlob.size >= 500) {
-                    try {
-                        const pdfFile = new File([pdfBlob], `${window._lastReceiptNo || 'receipt'}.pdf`, { type: 'application/pdf' });
-                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-                            await navigator.share({ files: [pdfFile], title: `Struk ${window._lastReceiptNo || 'receipt'}` });
-                            return;
-                        }
-                    } catch(_) {}
-                }
-                // Fallback: wa.me text message
-                const ts = t.createdAt ? new Date(t.createdAt) : new Date();
+
+            // Open the WhatsApp customer chat directly; PDF sharing is a separate action.
+            const ts = t.createdAt ? new Date(t.createdAt) : new Date();
                 const dd = String(ts.getDate()).padStart(2, '0'); const MM = String(ts.getMonth() + 1).padStart(2, '0'); const yy = String(ts.getFullYear()).slice(-2);
                 const timeStr = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 const dateStr = `${dd}/${MM}/${yy}`; const seq = String(t.receiptSeq || 1).padStart(6, '0'); const receiptNo = `POS-${dd}${MM}${yy}-${seq}`;
@@ -984,8 +973,7 @@
                 msg += `${'─'.repeat(24)}\n*TOTAL: Rp ${(t.total||0).toLocaleString('id-ID')}*\nMetode: ${methodLabel}\n`;
                 if (t.method === 'cash' && t.cash) { msg += `Tunai: Rp ${t.cash.toLocaleString('id-ID')}\nKembali: Rp ${(t.change||0).toLocaleString('id-ID')}\n`; }
                 msg += `${'─'.repeat(24)}\nTerima Kasih 🙏\n${CONFIG.storeAddress.replace(/\n/g, ', ')}\n${CONFIG.storeHours}\nWA: ${CONFIG.storeWA}\nIG: ${CONFIG.storeIG}\n${CONFIG.storeWebsite}`;
-                window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`, '_blank');
-            })();
+            window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
         }
 
         async function loadTodayStats() {
