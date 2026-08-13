@@ -240,7 +240,7 @@
         <div class="absolute bottom-8 flex gap-3">
             <button onclick="printReceipt()" class="px-4 py-2 bg-[#800000] text-white rounded-2xl text-sm"><i class="fa-solid fa-print mr-1"></i>Print</button>
             <button onclick="downloadPdf()" class="px-4 py-2 bg-zinc-700 text-white rounded-2xl text-sm"><i class="fa-solid fa-download mr-1"></i>PDF</button>
-            <button id="send-wa-btn" onclick="sendReceiptToWA()" class="hidden px-4 py-2 bg-green-500 text-white rounded-2xl text-sm"><i class="fa-brands fa-whatsapp mr-1"></i>Kirim WA</button>
+            <button id="send-wa-btn" onclick="sendReceiptToWA()" class="px-4 py-2 bg-green-500 text-white rounded-2xl text-sm"><i class="fa-brands fa-whatsapp mr-1"></i>Kirim WA</button>
             <button onclick="hideReceiptModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-2xl text-sm">Tutup</button>
         </div>
     </div>
@@ -789,10 +789,10 @@
             
             // Show/hide WA button based on customer WA
             const waBtn = document.getElementById('send-wa-btn');
-            if (transaction.customerWA) {
-                waBtn.classList.remove('hidden');
+            if (transaction.customerWA && transaction.customerWA.trim()) {
+                waBtn.classList.remove('opacity-50', 'pointer-events-none');
             } else {
-                waBtn.classList.add('hidden');
+                waBtn.classList.add('opacity-50', 'pointer-events-none');
             }
         }
 
