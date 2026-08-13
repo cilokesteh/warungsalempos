@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Admin: single allowed kasir account ──
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@warungsalem.com';
+    }
+
+    // ── products: read for any logged-in user (POS needs it), write ONLY admin ──
+    match /products/{id} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // ── transactions: kasir can CREATE with their own email, admin reads/deletes ──
+    match /transactions/{id} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.createdBy == request.auth.token.email
+        && request.resource.data.timestamp == request.time;
+      allow update, delete: if isAdmin();
+    }
+
+    // ── customers: admin only ──
+    match /customers/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── deny everything else ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

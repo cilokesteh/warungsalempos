@@ -6,9 +6,9 @@
     <title>POS Warung Salem</title>
     <script src="pwa.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
     <div class="min-h-screen">
@@ -271,6 +271,23 @@
         let selectedPaymentMethod = 'cash';
         let todayStats = { transactions: 0, revenue: 0 };
 
+        // Escape HTML — pencegahan stored XSS dari data Firestore
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        // Store config (centralized, no external file needed)
+        const CONFIG = {
+            storeName: 'Warung Salem',
+            storeJargon: 'Beuteng wareg awak jagjag',
+            storeAddress: 'Jl. Tegal Mulya, Gerbang Belakang Kampus UMP\nLedug, Kembaran, Purwokerto',
+            storeHours: 'Jam Buka: Setiap Hari 10.00 - 21.00 WIB',
+            storeWA: '0823-2555-5586',
+            storeIG: '@warung_salem',
+            storeWebsite: 'warungsalem.web.id',
+            receipt: { width: 80 }
+        };
+
         // Auth check
         auth.onAuthStateChanged(user => {
             if (!user) {
@@ -319,8 +336,8 @@
                 div.className = 'flex justify-between items-center p-3 bg-zinc-950 rounded-2xl border border-zinc-800 hover:border-[#800000]';
                 div.innerHTML = `
                     <div class="flex-1 cursor-pointer" onclick="addToCart('${product.id}')">
-                        <div class="font-medium">${product.name}</div>
-                        <div class="text-xs text-zinc-400">${product.category} • Stok: <span class="${product.stock >= 5 ? 'text-[#b91c1c]' : 'text-red-400'}">${product.stock}</span></div>
+                        <div class="font-medium">${esc(product.name)}</div>
+                        <div class="text-xs text-zinc-400">${esc(product.category)} • Stok: <span class="${product.stock >= 5 ? 'text-[#b91c1c]' : 'text-red-400'}">${product.stock}</span></div>
                         <div class="font-semibold text-[#b91c1c]">Rp ${product.price.toLocaleString('id-ID')}</div>
                     </div>
                     <div class="flex gap-2 ml-2">
@@ -387,7 +404,7 @@
                 div.className = 'flex justify-between items-center p-3 bg-zinc-950 rounded-2xl';
                 div.innerHTML = `
                     <div>
-                        <div class="font-medium">${item.name}</div>
+                        <div class="font-medium">${esc(item.name)}</div>
                         <div class="text-xs text-zinc-400">Rp ${item.price.toLocaleString('id-ID')} × ${item.qty}</div>
                     </div>
                     <div class="flex items-center gap-x-3">
@@ -611,7 +628,7 @@
                     method: selectedPaymentMethod,
                     customerName: document.getElementById('customer-name').value || 'Walk-in',
                     customerWA: document.getElementById('customer-wa').value || '',
-                    kasirName: document.getElementById('kasir-name').value || currentUser?.email || 'admin',
+                    kasirName: currentUser?.email || 'admin',
                     timestamp: now,
                     receiptSeq,
                     createdAt: Date.now(),
@@ -711,11 +728,11 @@
             const kasirName = transaction.kasirName || transaction.createdBy || 'admin';
             html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:2px;">`;
             html += `<span>Customer</span>`;
-            html += `<span>${custName}</span>`;
+            html += `<span>${esc(custName)}</span>`;
             html += `</div>`;
             html += `<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:1px;">`;
             html += `<span>Kasir</span>`;
-            html += `<span>${kasirName}</span>`;
+            html += `<span>${esc(kasirName)}</span>`;
             html += `</div>`;
             
             // Item header
@@ -726,7 +743,7 @@
             
             transaction.items.forEach(item => {
                 html += `<div style="display:flex;justify-content:space-between;font-size:11px;">`;
-                html += `<span>${item.name} x${item.qty}</span>`;
+                html += `<span>${esc(item.name)} x${item.qty}</span>`;
                 html += `<span>${item.subtotal.toLocaleString('id-ID')}</span>`;
                 html += `</div>`;
             });
@@ -996,7 +1013,7 @@ ${CONFIG.storeWebsite}`;
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center';
                     div.innerHTML = `
-                        <span>${p.name}</span>
+                        <span>${esc(p.name)}</span>
                         <span class="px-1.5 py-0.5 bg-[#991b1b]/20 text-[#b91c1c] rounded">${p.stock}</span>
                     `;
                     listEl.appendChild(div);
