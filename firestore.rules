@@ -2,32 +2,49 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Admin: single allowed kasir account ──
-    function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'admin@warungsalem.com';
+    // This Firebase project hosts two isolated apps. Never use a generic
+    // "request.auth != null" rule here: the public demo account must not read
+    // Warung Salem production data.
+    function isDemoAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'admin@tokodemo.com';
     }
 
-    // ── products: read for any logged-in user (POS needs it), write ONLY admin ──
-    match /products/{id} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+    function isWarungAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'admin@warungsalem.com';
     }
 
-    // ── transactions: kasir can CREATE with their own email, admin reads/deletes ──
-    match /transactions/{id} {
-      allow read: if isAdmin();
-      allow create: if request.auth != null
+    match /demo-products/{id} {
+      allow read, write: if isDemoAdmin();
+    }
+
+    match /demo-transactions/{id} {
+      allow read, update, delete: if isDemoAdmin();
+      allow create: if isDemoAdmin()
         && request.resource.data.createdBy == request.auth.token.email
         && request.resource.data.timestamp == request.time;
-      allow update, delete: if isAdmin();
     }
 
-    // ── customers: admin only ──
+    match /demo-customers/{id} {
+      allow read, write: if isDemoAdmin();
+    }
+
+    match /products/{id} {
+      allow read, write: if isWarungAdmin();
+    }
+
+    match /transactions/{id} {
+      allow read, update, delete: if isWarungAdmin();
+      allow create: if isWarungAdmin()
+        && request.resource.data.createdBy == request.auth.token.email
+        && request.resource.data.timestamp == request.time;
+    }
+
     match /customers/{id} {
-      allow read, write: if isAdmin();
+      allow read, write: if isWarungAdmin();
     }
 
-    // ── deny everything else ──
     match /{document=**} {
       allow read, write: if false;
     }
